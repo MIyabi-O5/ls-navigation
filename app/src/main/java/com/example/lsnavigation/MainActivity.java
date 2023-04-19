@@ -26,11 +26,8 @@ import java.io.File;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    MapView map = null;
-    IMapController mapController = null;
-    OfflineTileProvider tileProvider = null;
-    File file = new File("/sdcard/osmdroid/offlineMap.sqlite");
-    ITileSource tileSource = null;
+    MapView map;
+    IMapController mapController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,46 +38,26 @@ public class MainActivity extends AppCompatActivity {
                 .load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
         setContentView(R.layout.activity_main);
 
-        map = (MapView) findViewById(R.id.map);
-
-
+        // 初期化
+        findViews();
+        map.setUseDataConnection(false);
         map.setTileSource(new XYTileSource(
                 "/sdcard/osmdroid/offlineMap.zip",
-                10,
+                16,
                 16,
                 256,
-                ".jpg",
+                ".png",
                 new String[]{}
         ));
-        //map.setUseDataConnection(false);
 
 
-        /*
-        try{
-            tileProvider = new OfflineTileProvider(new SimpleRegisterReceiver(this), new File[]{file});
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        map.setTileProvider(tileProvider);
-
-        IArchiveFile[] archiveFiles = tileProvider.getArchives();
-        if(archiveFiles.length > 0){
-            Set<String> sourceNames = archiveFiles[0].getTileSources();
-            if(!sourceNames.isEmpty()){
-                String source = sourceNames.iterator().next();
-                tileSource = FileBasedTileSource.getSource(source);
-            }
-        }
-        map.setTileSource(tileSource);
-         */
 
         mapController = map.getController();
-        map.setTileSource(TileSourceFactory.MAPNIK);
+        //map.setTileSource(TileSourceFactory.);
         GeoPoint centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
         mapController.setCenter(centerPoint);
         map.setMultiTouchControls(true);
-        mapController.setZoom(14.0);
+        mapController.setZoom(16.0);
         Marker marker = new Marker(map);
         GeoPoint kohnan = new GeoPoint(35.682267446330904, 139.54380069251135);
         marker.setPosition(kohnan);
@@ -102,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
         if(map != null){
             map.onPause();
         }
-
     }
+
+    protected void findViews(){
+        map = (MapView) findViewById(R.id.map);
+    }
+
 }
