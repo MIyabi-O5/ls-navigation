@@ -2,14 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="1000px"
-    android:layout_gravity="bottom"
-    tools:context=".SensorFragment">
+    android:layout_height="match_parent"
+    tools:context=".SensorFragment"
+    android:background="@color/transparent">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="CadenceMonitor"
-        />
+        android:text="Cadence"
+        android:gravity="center"
+        android:textSize="64sp"
+        android:textStyle="bold"
+        android:id="@+id/cadenceMonitor"/>
 
 </LinearLayout>

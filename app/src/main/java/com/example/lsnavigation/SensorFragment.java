@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,6 +24,8 @@ public class SensorFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private TextView cadenceMonitor;
 
     public SensorFragment() {
         // Required empty public constructor
@@ -61,4 +64,15 @@ public class SensorFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_sensor, container, false);
     }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        findViews();
+    }
+
+    protected void findViews(){
+        cadenceMonitor = (TextView) getActivity().findViewById(R.id.cadenceMonitor);
+    }
+
 }

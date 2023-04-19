@@ -2,6 +2,7 @@ package com.example.lsnavigation;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
 import android.content.Context;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 初期化
         findViews();
+
+        /*
         map.setUseDataConnection(false);
         map.setTileSource(new XYTileSource(
                 "/sdcard/osmdroid/offlineMap.zip",
@@ -49,11 +52,10 @@ public class MainActivity extends AppCompatActivity {
                 ".png",
                 new String[]{}
         ));
-
-
+         */
 
         mapController = map.getController();
-        //map.setTileSource(TileSourceFactory.);
+        map.setTileSource(TileSourceFactory.MAPNIK);
         GeoPoint centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
         mapController.setCenter(centerPoint);
         map.setMultiTouchControls(true);

@@ -14,5 +14,13 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="800px"
+        android:id="@+id/sensorFragment"
+        android:name="com.example.lsnavigation.SensorFragment"
+        android:layout_gravity="bottom"/>
+
+
 
 </FrameLayout>
