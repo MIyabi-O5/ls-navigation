@@ -6,13 +6,17 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.felhr.usbserial.UsbSerialDevice;
 
@@ -36,40 +40,12 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
     MapView map;
     IMapController mapController;
+    Button connectButton;
 
-    private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-
-    /**
-     * USBシリアル通信の初期化を行う
-     * @return 成功した場合はUsbSerialDevice、失敗した場合はnull
-     */
-    UsbSerialDevice initializeUsbSerial() {
-        UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-
-        // USBデバイス一覧を取得して、一覧からUSBシリアルデバイスを探す
-        UsbDevice usbDevice = null;
-        for (UsbDevice d : usbManager.getDeviceList().values()) {
-            // 関係ないデバイスに誤爆することがあるので、Raspberry Pi Picoが見つかるようにVendorIdもチェックする
-            if (UsbSerialDevice.isSupported(d) && UsbSerialDevice.isCdcDevice(d) && d.getVendorId() == 0x2E8A) {
-                usbDevice = d;
-            }
-        }
-        if (usbDevice == null) {return null;}
-
-        // 権限チェック
-        if (!usbManager.hasPermission(usbDevice)) {
-            // ユーザからアクセス許可をもらっていなかったら、許可を求めたうえで初期化は失敗扱いにしてnullを返す。
-            // 一度ユーザが許可をすれば、次回以降のアプリ起動時に接続ができるようになる。
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-            usbManager.requestPermission(usbDevice, pendingIntent);
-            return null;
-        }
-
-        // 権限があるのでデバイスに接続する
-        UsbDeviceConnection usbDeviceConnection = usbManager.openDevice(usbDevice);
-        return UsbSerialDevice.createUsbSerialDevice(usbDevice, usbDeviceConnection);
+    protected void findViews(){
+        map = (MapView) findViewById(R.id.map);
+        connectButton = (Button) findViewById(R.id.connectButton);
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +58,6 @@ public class MainActivity extends AppCompatActivity {
 
         // 初期化
         findViews();
-
-        UsbSerialDevice serial = initializeUsbSerial();
 
         /*
         map.setUseDataConnection(false);
@@ -110,6 +84,19 @@ public class MainActivity extends AppCompatActivity {
         marker.setTitle("働けカス");
         Drawable icon = getDrawable(R.drawable.white);
         marker.setIcon(icon);
+
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SerialService.ACTION);
+
+        // Receiverの登録、manifestにも追記する必要があるReceiverも存在する
+        registerReceiver(receiver, intentFilter);
+
+        Intent intent = new Intent(this, SerialService.class);
+        connectButton.setOnClickListener(view -> {
+            startService(intent);
+        });
+
     }
 
     public void onResume(){
@@ -126,8 +113,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    protected void findViews(){
-        map = (MapView) findViewById(R.id.map);
-    }
+    // UIの更新のためにReceiverをMainActivityに記述する
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            TextView cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
+            String msg = intent.getStringExtra("message");
+            cadenceMonitor.setText(msg);
+        }
+    };
 
 }
