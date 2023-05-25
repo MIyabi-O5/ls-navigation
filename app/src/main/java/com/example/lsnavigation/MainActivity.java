@@ -15,6 +15,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, SerialService.class);
         connectButton.setOnClickListener(view -> {
             startService(intent);
+            // buttonを押したら邪魔なので見えなくする
+            connectButton.setVisibility(View.GONE);
         });
 
     }

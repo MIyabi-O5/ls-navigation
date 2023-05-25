@@ -29,6 +29,9 @@ public class SerialService extends Service {
     public static final String ACTION = "SerialService Action";
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
 
+    private static final String GNSS_HEADER = "401";
+
+
     UsbSerialDevice serial;
 
     Context context;
@@ -79,6 +82,9 @@ public class SerialService extends Service {
             // USBシリアルの初期化に失敗
             Toast.makeText(this, "connection failed", Toast.LENGTH_SHORT).show();
             Log.i(TAG, "connection failed");
+        }else{
+            Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "connected");
         }
     }
 
@@ -94,7 +100,9 @@ public class SerialService extends Service {
 
             serial.syncOpen();
             BufferedReader serialReader = new BufferedReader(new InputStreamReader(serial.getInputStream()));
-            String buf;
+            String buf = null;
+            String ret = null;
+
 
             // とりあえず受信する
             try {
@@ -105,12 +113,20 @@ public class SerialService extends Service {
             }
 
             // 受信していないなら何もしない
-            if (buf == null) {
+            if (buf != null) {
+                String[] array = buf.split(",");
+                if(array[0].equals(GNSS_HEADER)){
+                    ret = array[6];
+                }
+            }else {
+                return;
+            }
+            if(ret == null){
                 return;
             }
 
             Intent intent2 = new Intent(ACTION);
-            intent2.putExtra("message", buf);
+            intent2.putExtra("message", ret);
             // ブロードキャストの送信、受信側はレシーバーを作成しなければいけない-> BroadcastReceiver
             sendBroadcast(intent2);
             Log.i(TAG, "onStartCommand");
