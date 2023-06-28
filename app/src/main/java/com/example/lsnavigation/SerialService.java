@@ -30,6 +30,9 @@ public class SerialService extends Service {
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
 
     private static final String GNSS_HEADER = "401";
+    private static final String PITOT_HEADER = "402";
+    private static final String ALTIMETER_HEADER = "403";
+    private static final String NRF_HEADER = "405";
 
 
     UsbSerialDevice serial;
@@ -113,20 +116,23 @@ public class SerialService extends Service {
             }
 
             // 受信していないなら何もしない
+            /*
             if (buf != null) {
+                /*
                 String[] array = buf.split(",");
+                Log.i("debug", buf);
                 if(array[0].equals(GNSS_HEADER)){
                     ret = array[6];
+                    Toast.makeText(this, ret, Toast.LENGTH_SHORT).show();
                 }
-            }else {
+
                 return;
             }
-            if(ret == null){
-                return;
-            }
+             */
+
 
             Intent intent2 = new Intent(ACTION);
-            intent2.putExtra("message", ret);
+            intent2.putExtra("message", buf);
             // ブロードキャストの送信、受信側はレシーバーを作成しなければいけない-> BroadcastReceiver
             sendBroadcast(intent2);
             Log.i(TAG, "onStartCommand");
