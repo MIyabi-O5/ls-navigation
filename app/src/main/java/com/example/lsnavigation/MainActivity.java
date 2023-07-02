@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
     GeoPoint centerPoint;   // 現在値
     GeoPoint homePoint = new GeoPoint(homePointLat, homePointLon);     // プラットホーム座標;
 
-    public static final double pylonPointLat = 35.393153;
-    public static final double pylonPointLon = 139.322582;
+    public static final double pylonPointLat = 35.6555431;
+    public static final double pylonPointLon = 139.5437312;
 
     GeoPoint pylonPoint = new GeoPoint(pylonPointLat, pylonPointLon);    // パイロン座標
 
@@ -99,8 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        //GeoPoint centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
-        centerPoint = new GeoPoint(35.1175953, 138.6323563);
+        centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
 
 
         mapController.setCenter(centerPoint);
@@ -157,17 +156,23 @@ public class MainActivity extends AppCompatActivity {
 
                 double latitude = Double.parseDouble(gpsArray[1]) / 10000000;
                 double longitude = Double.parseDouble(gpsArray[2]) / 10000000;
+                int heading = (int)Double.parseDouble(gpsArray[5]) / 100000;
+                // ブラックの回転
+                imageBlack.setRotation(heading);
 
                 centerPoint = new GeoPoint(latitude, longitude);
                 mapController.setCenter(centerPoint);
-                // パイロンまでの距離(m)
-                double distance = calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
-                cadenceMonitor.setText(String.valueOf(distance));
-                Log.i("debug", String.valueOf(Arrays.toString(gpsArray)));
+                // pylonPointまでの距離(m)
+                int distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
+                // homePointまでの距離(m)
+                int distanceHome = 18000 - distancePylon;
+                cadenceMonitor.setText(String.valueOf(distancePylon));
+                Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
+                Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
             } else if (msg.contains("cadence")) {
                 String[] cadenceArray = msg.split(",");
                 cadenceMonitor.setText(cadenceArray[1]);
-                Log.i("debug", "cadence");
+                Log.i("debugCadence", "cadence" + String.valueOf(cadenceArray[1]));
             } else if (msg.contains("height")) {
                 String[] altimeterArray = msg.split(",");
                 int height = Integer.parseInt(altimeterArray[2]);
@@ -176,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
                 }
-                Log.i("debug", Arrays.toString(altimeterArray));
+                Log.i("debugHeight", Arrays.toString(altimeterArray));
             }
 
             //cadenceMonitor.setText(msg);
