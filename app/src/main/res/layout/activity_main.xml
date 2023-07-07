@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/imageBlack"
-        android:src="@drawable/black"
+        android:src="@drawable/baseline_airplanemode_active_24"
         android:scaleType="center"
         android:scaleX="0.5"
         android:scaleY="0.5"/>`

@@ -16,11 +16,14 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.felhr.usbserial.UsbSerialDevice;
@@ -62,15 +65,20 @@ public class MainActivity extends AppCompatActivity {
     public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
 
     Button connectButton;
-    LinearLayout fragmentLayout;
+    RelativeLayout fragmentLayout;
     ImageView imageBlack;
+
+    SeekBar seekBar;
+
+    public int offsetValue = 500;
 
 
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
         connectButton = (Button) findViewById(R.id.connectButton);
-        fragmentLayout = (LinearLayout) findViewById(R.id.sensorFragment);
+        fragmentLayout = (RelativeLayout) findViewById(R.id.sensorFragment);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
     }
 
     @Override
@@ -84,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 初期化
         findViews();
+
+        seekBar.setProgress(offsetValue);
+        seekBar.setVisibility(View.GONE);
 
         /*
         map.setUseDataConnection(false);
@@ -110,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
         Marker marker = new Marker(map);
         marker.setPosition(pylonPoint);
         map.getOverlays().add(marker);
-        marker.setTitle("働けカス");
         Drawable icon = getDrawable(R.drawable.white);
         marker.setIcon(icon);
 
@@ -127,6 +137,24 @@ public class MainActivity extends AppCompatActivity {
             // buttonを押したら邪魔なので見えなくする
             connectButton.setVisibility(View.GONE);
         });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                offsetValue = i;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // くすぐったいよー
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekBar.setVisibility(View.GONE) ;
+            }
+        });
+
 
     }
 
@@ -213,5 +241,10 @@ public class MainActivity extends AppCompatActivity {
         return Math.sqrt(dym * dym + dxncos * dxncos);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent){
+        seekBar.setVisibility(View.VISIBLE);
+        return true;
+    }
 
 }
