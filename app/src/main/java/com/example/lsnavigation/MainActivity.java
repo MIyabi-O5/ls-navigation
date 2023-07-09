@@ -132,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(receiver, intentFilter);
 
         Intent intent = new Intent(this, SerialService.class);
+        intent.putExtra("data", "data");
         connectButton.setOnClickListener(view -> {
             startService(intent);
             // buttonを押したら邪魔なので見えなくする
@@ -178,41 +179,43 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             TextView cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
             String msg = intent.getStringExtra("message");
-            // msgのなかにGPS, Cadence, heightの文字列処理を行う
-            if (msg.contains("gps")){
-                String[] gpsArray = msg.split(",");
+            /*
+             msgの構造
+             data,lat,lon,heading,height,ctl\n
+             これらのデータを配列に変換する
+             */
+            String[] data = msg.split(",");
 
-                double latitude = Double.parseDouble(gpsArray[1]) / 10000000;
-                double longitude = Double.parseDouble(gpsArray[2]) / 10000000;
-                int heading = (int)Double.parseDouble(gpsArray[5]) / 100000;
-                // ブラックの回転
-                imageBlack.setRotation(heading);
+            double latitude = Double.parseDouble(data[1]) / 10000000;
+            double longitude = Double.parseDouble(data[2]) / 10000000;
+            int heading = (int)Double.parseDouble(data[3]) / 100000;
+            // ブラックの回転
+            imageBlack.setRotation(heading);
 
-                centerPoint = new GeoPoint(latitude, longitude);
-                mapController.setCenter(centerPoint);
-                // pylonPointまでの距離(m)
-                int distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
-                // homePointまでの距離(m)
-                int distanceHome = 18000 - distancePylon;
-                cadenceMonitor.setText(String.valueOf(distancePylon));
-                Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
-                Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
-            } else if (msg.contains("cadence")) {
-                String[] cadenceArray = msg.split(",");
-                cadenceMonitor.setText(cadenceArray[1]);
-                Log.i("debugCadence", "cadence" + String.valueOf(cadenceArray[1]));
-            } else if (msg.contains("height")) {
-                String[] altimeterArray = msg.split(",");
-                int height = Integer.parseInt(altimeterArray[2]);
-                if(height < 2000 || height > 5000) {
-                    fragmentLayout.setBackgroundColor(getResources().getColor(R.color.red, getTheme()));
-                } else {
-                    fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
-                }
-                Log.i("debugHeight", Arrays.toString(altimeterArray));
+            centerPoint = new GeoPoint(latitude, longitude);
+            mapController.setCenter(centerPoint);
+            // pylonPointまでの距離(m)
+            int distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
+            // homePointまでの距離(m)
+            int distanceHome = 18000 - distancePylon;
+            Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
+            Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
+
+            // 操舵計表示
+            int deg = Integer.parseInt(data[5]) - offsetValue;
+            //int cad = Integer.parseInt(data[6]);
+            cadenceMonitor.setText(String.valueOf(deg) + "\n" + data[6]);
+            Log.i("debugCadence", "deg" + String.valueOf(deg));
+
+
+            // 高度の色表示
+            int height = Integer.parseInt(data[4]);
+            if(height < 2000 || height > 5000) {
+                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.red, getTheme()));
+            } else {
+                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
             }
-
-            //cadenceMonitor.setText(msg);
+            Log.i("debugHeight", "height" + String.valueOf(height));
 
         }
     };

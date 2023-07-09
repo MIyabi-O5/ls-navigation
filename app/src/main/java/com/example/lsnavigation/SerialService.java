@@ -14,8 +14,10 @@ import android.widget.Toast;
 import com.felhr.usbserial.UsbSerialDevice;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -87,7 +89,14 @@ public class SerialService extends Service {
             Log.i(TAG, "connection failed");
         }else{
             Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "connected");
+            serial.syncOpen();
+            BufferedWriter serialWriter = new BufferedWriter(new OutputStreamWriter(serial.getOutputStream()));
+            try {
+                serialWriter.write("connect");
+                Log.i(TAG, "connected");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -100,11 +109,11 @@ public class SerialService extends Service {
         schedule = Executors.newSingleThreadScheduledExecutor();
         // 1000msecごとに処理を実行
         schedule.scheduleAtFixedRate(()->{
-
+            String value = intent.getStringExtra("data");
+            Log.i("service", value);
             serial.syncOpen();
             BufferedReader serialReader = new BufferedReader(new InputStreamReader(serial.getInputStream()));
             String buf = null;
-            String ret = null;
 
 
             // とりあえず受信する
@@ -114,22 +123,6 @@ public class SerialService extends Service {
                 e.printStackTrace();
                 return;
             }
-
-            // 受信していないなら何もしない
-            /*
-            if (buf != null) {
-                /*
-                String[] array = buf.split(",");
-                Log.i("debug", buf);
-                if(array[0].equals(GNSS_HEADER)){
-                    ret = array[6];
-                    Toast.makeText(this, ret, Toast.LENGTH_SHORT).show();
-                }
-
-                return;
-            }
-             */
-
 
             Intent intent2 = new Intent(ACTION);
             intent2.putExtra("message", buf);
