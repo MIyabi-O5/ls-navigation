@@ -15,6 +15,9 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.felhr.usbserial.UsbSerialDevice;
 
@@ -43,6 +47,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay2;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -71,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
     SeekBar seekBar;
 
     public int offsetValue = 500;
-
-
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
         connectButton = (Button) findViewById(R.id.connectButton);
