@@ -1,15 +1,20 @@
 package com.example.lsnavigation;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
@@ -19,6 +24,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.ContentInfo;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -84,6 +90,12 @@ public class MainActivity extends AppCompatActivity {
         seekBar = (SeekBar) findViewById(R.id.seekBar);
     }
 
+    private void initMic(){
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,25 +107,15 @@ public class MainActivity extends AppCompatActivity {
 
         // 初期化
         findViews();
+        initMic();
 
         seekBar.setProgress(offsetValue);
         seekBar.setVisibility(View.GONE);
 
-        /*
-        map.setUseDataConnection(false);
-        map.setTileSource(new XYTileSource(
-                "/sdcard/osmdroid/offlineMap.zip",
-                16,
-                16,
-                256,
-                ".png",
-                new String[]{}
-        ));
-         */
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
+        centerPoint = new GeoPoint(homePointLat, homePointLon);
 
 
         mapController.setCenter(centerPoint);
@@ -252,5 +254,18 @@ public class MainActivity extends AppCompatActivity {
         seekBar.setVisibility(View.VISIBLE);
         return true;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permission, @NonNull int[] grantResult) {
+        super.onRequestPermissionsResult(requestCode, permission, grantResult);
+        if (requestCode == 1) {
+            if (grantResult[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
 }

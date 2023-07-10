@@ -93,7 +93,8 @@ public class SerialService extends Service {
             BufferedWriter serialWriter = new BufferedWriter(new OutputStreamWriter(serial.getOutputStream()));
             try {
                 serialWriter.write("connect");
-                Log.i(TAG, "connected");
+                Log.i(TAG, "connect write");
+                serial.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
