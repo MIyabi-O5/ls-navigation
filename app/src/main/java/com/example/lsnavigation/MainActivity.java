@@ -146,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(receiver, intentFilter);
 
         Intent intent = new Intent(this, SerialService.class);
-        intent.putExtra("data", "data");
         connectButton.setOnClickListener(view -> {
             speechRecognizer.startListening(speechRecognizerIntent);
             startService(intent);
@@ -238,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onResults");
                 ArrayList<String> data = results.getStringArrayList(speechRecognizer.RESULTS_RECOGNITION);
                 cadenceMonitor.setText(data.get(0));
+                intent.putExtra("data", data.get(0));
                 speechRecognizer.startListening(speechRecognizerIntent);
             }
 

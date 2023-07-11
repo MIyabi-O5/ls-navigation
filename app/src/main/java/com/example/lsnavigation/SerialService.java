@@ -30,15 +30,7 @@ public class SerialService extends Service {
 
     public static final String ACTION = "SerialService Action";
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-
-    private static final String GNSS_HEADER = "401";
-    private static final String PITOT_HEADER = "402";
-    private static final String ALTIMETER_HEADER = "403";
-    private static final String NRF_HEADER = "405";
-
-
     UsbSerialDevice serial;
-
     Context context;
 
     /**
@@ -89,15 +81,11 @@ public class SerialService extends Service {
             Log.i(TAG, "connection failed");
         }else{
             Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
-            serial.syncOpen();
-            BufferedWriter serialWriter = new BufferedWriter(new OutputStreamWriter(serial.getOutputStream()));
-            try {
-                serialWriter.write("connect");
-                Log.i(TAG, "connect write");
-                serial.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            // Picoとの接続を確認し、Picoにmsgを送る
+            serial.open();
+            serial.write("connect".getBytes());
+            Log.i(TAG, "connect write");
+            serial.close();
         }
     }
 
