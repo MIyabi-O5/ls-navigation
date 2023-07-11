@@ -121,17 +121,6 @@ public class MainActivity extends AppCompatActivity {
         seekBar.setProgress(offsetValue);
         seekBar.setVisibility(View.GONE);
 
-        /*
-        map.setUseDataConnection(false);
-        map.setTileSource(new XYTileSource(
-                "/sdcard/osmdroid/offlineMap.zip",
-                16,
-                16,
-                256,
-                ".png",
-                new String[]{}
-        ));
-         */
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
