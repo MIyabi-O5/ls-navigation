@@ -1,6 +1,5 @@
 package com.example.lsnavigation;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
@@ -24,7 +23,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.view.ContentInfo;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -34,7 +32,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.felhr.usbserial.UsbSerialDevice;
 
@@ -78,22 +75,24 @@ public class MainActivity extends AppCompatActivity {
     Button connectButton;
     RelativeLayout fragmentLayout;
     ImageView imageBlack;
+    TextView cadenceMonitor;
 
     SeekBar seekBar;
 
     public int offsetValue = 500;
+
+    private SpeechRecognizer speechRecognizer;
+    private final static String TAG = "SPEECH_RECOGNIZER";
+
+
+
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
         connectButton = (Button) findViewById(R.id.connectButton);
         fragmentLayout = (RelativeLayout) findViewById(R.id.sensorFragment);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
-    }
-
-    private void initMic(){
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-        }
+        cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
     }
 
     @Override
@@ -107,15 +106,36 @@ public class MainActivity extends AppCompatActivity {
 
         // 初期化
         findViews();
-        initMic();
+
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        }
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+
+        Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2);
 
         seekBar.setProgress(offsetValue);
         seekBar.setVisibility(View.GONE);
 
+        /*
+        map.setUseDataConnection(false);
+        map.setTileSource(new XYTileSource(
+                "/sdcard/osmdroid/offlineMap.zip",
+                16,
+                16,
+                256,
+                ".png",
+                new String[]{}
+        ));
+         */
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        centerPoint = new GeoPoint(homePointLat, homePointLon);
+        centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
 
 
         mapController.setCenter(centerPoint);
@@ -139,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, SerialService.class);
         intent.putExtra("data", "data");
         connectButton.setOnClickListener(view -> {
+            speechRecognizer.startListening(speechRecognizerIntent);
             startService(intent);
             // buttonを押したら邪魔なので見えなくする
             connectButton.setVisibility(View.GONE);
@@ -162,6 +183,88 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            @Override
+            public void onReadyForSpeech(Bundle bundle) {
+                Log.i(TAG, "onReadyForSpeech");
+            }
+
+            @Override
+            public void onBeginningOfSpeech() {
+                Log.i(TAG, "onBeginningOfSpeech");
+
+            }
+
+            @Override
+            public void onRmsChanged(float v) {
+                Log.i(TAG, "onRmsChanged");
+            }
+
+            @Override
+            public void onBufferReceived(byte[] bytes) {
+                Log.i(TAG, "onBufferReceived");
+            }
+
+            @Override
+            public void onEndOfSpeech() {
+                Log.i(TAG, "onEndOfSpeech");
+            }
+
+            @Override
+            public void onError(int i) {
+                switch (i) {
+                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                        Log.d(TAG, "ネットワークタイムエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        Log.d(TAG, "その外ネットワークエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        Log.d(TAG, "Audio エラー");
+                        break;
+                    case SpeechRecognizer.ERROR_SERVER:
+                        Log.d(TAG, "サーバーエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_CLIENT:
+                        Log.d(TAG, "クライアントエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                        Log.d(TAG, "何も聞こえてないエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        Log.d(TAG, "適当な結果を見つけてませんエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                        Log.d(TAG, "RecognitionServiceが忙しいエラー");
+                        break;
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        Log.d(TAG, "RECORD AUDIOがないエラー");
+                        break;
+                }
+                speechRecognizer.startListening(speechRecognizerIntent);
+            }
+
+            @Override
+            public void onResults(Bundle results) {
+                Log.i(TAG, "onResults");
+                ArrayList<String> data = results.getStringArrayList(speechRecognizer.RESULTS_RECOGNITION);
+                cadenceMonitor.setText(data.get(0));
+                speechRecognizer.startListening(speechRecognizerIntent);
+            }
+
+            @Override
+            public void onPartialResults(Bundle bundle) {
+                Log.i(TAG, "onPartialResults");
+            }
+
+            @Override
+            public void onEvent(int i, Bundle bundle) {
+                Log.i(TAG, "onEvent");
+            }
+        });
+
+
+
     }
 
     public void onResume(){
@@ -182,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            TextView cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
+
             String msg = intent.getStringExtra("message");
             /*
              msgの構造
@@ -254,18 +357,5 @@ public class MainActivity extends AppCompatActivity {
         seekBar.setVisibility(View.VISIBLE);
         return true;
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permission, @NonNull int[] grantResult) {
-        super.onRequestPermissionsResult(requestCode, permission, grantResult);
-        if (requestCode == 1) {
-            if (grantResult[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
 
 }

@@ -127,7 +127,7 @@ public class SerialService extends Service {
 
             Intent intent2 = new Intent(ACTION);
             intent2.putExtra("message", buf);
-            // ブロードキャストの送信、受信側はレシーバーを作成しなければいけない-> BroadcastReceiver
+            // ブロードキャストの送信、受信側はレシーバーconnectを作成しなければいけない-> BroadcastReceiver
             sendBroadcast(intent2);
             Log.i(TAG, "onStartCommand");
         }, 0, 1000, TimeUnit.MILLISECONDS);
