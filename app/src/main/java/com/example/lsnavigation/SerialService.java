@@ -149,16 +149,28 @@ public class SerialService extends Service {
             Log.i("service", value);
 
             //serial.syncOpen();
-            BufferedReader serialReader = new BufferedReader(new InputStreamReader(serial.getInputStream()));
+            //BufferedReader serialReader = new BufferedReader(new InputStreamReader(serial.getInputStream()));
+            byte[] b = new byte[100];
             String buf = null;
 
+            int n = serial.syncRead(b, 1000);
+            if(n > 0) {
+                byte[] received = new byte[n];
+                System.arraycopy(b, 0, received, 0, n);
+                buf = new String(received);
+            }else{
+                return;
+            }
+
             // とりあえず受信する
-            try {
+            /*try {
                 buf = serialReader.readLine();
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
             }
+
+             */
 
             Intent intent2 = new Intent(ACTION);
             intent2.putExtra("message", buf);
