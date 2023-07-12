@@ -7,7 +7,10 @@ import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,18 +29,63 @@ import java.util.concurrent.TimeUnit;
 public class SerialService extends Service {
 
     private final String TAG = "SerialService";
-    private ScheduledExecutorService schedule;
+    public ScheduledExecutorService schedule;
 
-    public static final String ACTION = "SerialService Action";
+    public static final String ACTION = "SerialServiceAction";
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-    UsbSerialDevice serial;
-    Context context;
+    public static UsbSerialDevice serial;
+    public static Context context;
+
+    // ---ActivityからServiceの受信部、音声認識の結果をserial.writeする
+    Messenger messenger;
+    static final int DISTANCE_1 = 1;
+    static final int DISTANCE_2 = 2;
+    static final int DISTANCE_3 = 3;
+    static final int DISTANCE_4 = 4;
+    static final int DISTANCE_5 = 5;
+
+    static boolean flag = false;
+
+    static class VoiceHandler extends Handler{
+
+        public VoiceHandler(Context cont){
+            context = cont.getApplicationContext();
+        }
+
+        @Override
+        public void handleMessage(Message msg){
+            //serial.syncOpen();
+            switch (msg.what) {
+                case DISTANCE_1:
+                    Toast.makeText(context.getApplicationContext(), "write", Toast.LENGTH_SHORT).show();
+                    serial.syncWrite("b_distance_1.wav".getBytes(), 1000);
+                    break;
+                case DISTANCE_2:
+
+                    serial.syncWrite("b_distance_2.wav".getBytes(), 1000);
+                    break;
+                case DISTANCE_3:
+                    serial.syncWrite("b_distance_3.wav".getBytes(), 1000);
+                    break;
+            }
+        }
+    }
+
+    /* サービスバインド時実行
+     * サービスとアクティビティ間で通信するときに利用するメソッド
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        messenger = new Messenger(new VoiceHandler(this));
+        return messenger.getBinder();
+    }
+
 
     /**
      * USBシリアル通信の初期化を行う
      * @return 成功した場合はUsbSerialDevice、失敗した場合はnull
      */
-    UsbSerialDevice initializeUsbSerial() {
+    public UsbSerialDevice initializeUsbSerial() {
         UsbManager usbManager = (UsbManager) getSystemService(context.USB_SERVICE);
 
         // USBデバイス一覧を取得して、一覧からUSBシリアルデバイスを探す
@@ -82,10 +130,9 @@ public class SerialService extends Service {
         }else{
             Toast.makeText(this, "connected", Toast.LENGTH_SHORT).show();
             // Picoとの接続を確認し、Picoにmsgを送る
-            serial.open();
-            serial.write("connect".getBytes());
-            Log.i(TAG, "connect write");
-            serial.close();
+            serial.syncOpen();
+            serial.syncWrite("connect".getBytes(), 1000);
+            //serial.close();
         }
     }
 
@@ -100,10 +147,10 @@ public class SerialService extends Service {
         schedule.scheduleAtFixedRate(()->{
             String value = intent.getStringExtra("data");
             Log.i("service", value);
-            serial.syncOpen();
+
+            //serial.syncOpen();
             BufferedReader serialReader = new BufferedReader(new InputStreamReader(serial.getInputStream()));
             String buf = null;
-
 
             // とりあえず受信する
             try {
@@ -128,14 +175,6 @@ public class SerialService extends Service {
          * START_STICKY_COMPATIBILITY   再起動は保証されない(START_STICKYとの互換)
          */
         return START_STICKY;
-    }
-
-    /* サービスバインド時実行
-     * サービスとアクティビティ間で通信するときに利用するメソッド
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 
     @Override

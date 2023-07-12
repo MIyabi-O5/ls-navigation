@@ -10,15 +10,21 @@ import androidx.preference.PreferenceManager;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -32,6 +38,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.felhr.usbserial.UsbSerialDevice;
 
@@ -84,6 +91,24 @@ public class MainActivity extends AppCompatActivity {
     private SpeechRecognizer speechRecognizer;
     private final static String TAG = "SPEECH_RECOGNIZER";
 
+    // Activityとserviceの通信
+
+    Messenger messenger = null;
+    boolean bound;
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            messenger = new Messenger(iBinder);
+            bound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            messenger = null;
+            bound = false;
+        }
+    };
 
 
     protected void findViews(){
@@ -149,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         connectButton.setOnClickListener(view -> {
             speechRecognizer.startListening(speechRecognizerIntent);
             startService(intent);
+            bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
             // buttonを押したら邪魔なので見えなくする
             connectButton.setVisibility(View.GONE);
         });
@@ -185,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onRmsChanged(float v) {
-                Log.i(TAG, "onRmsChanged");
+                //Log.i(TAG, "onRmsChanged");
             }
 
             @Override
@@ -235,9 +261,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResults(Bundle results) {
                 Log.i(TAG, "onResults");
+                Message msg = null;
                 ArrayList<String> data = results.getStringArrayList(speechRecognizer.RESULTS_RECOGNITION);
                 cadenceMonitor.setText(data.get(0));
-                intent.putExtra("data", data.get(0));
+                if(!bound){
+                    speechRecognizer.startListening(speechRecognizerIntent);
+                    return;
+                }
+                if(data.get(0).equals("ブラック距離")){
+                    msg = Message.obtain(null, SerialService.DISTANCE_1, 0, 0);
+                }else {
+                    speechRecognizer.startListening(speechRecognizerIntent);
+                    return;
+                }
+
+                try {
+                    messenger.send(msg);
+                }catch (RemoteException e){
+                    e.printStackTrace();
+                }
                 speechRecognizer.startListening(speechRecognizerIntent);
             }
 
