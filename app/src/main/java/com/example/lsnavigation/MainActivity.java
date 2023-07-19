@@ -1,14 +1,11 @@
 package com.example.lsnavigation;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
 import android.Manifest;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,10 +14,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -32,34 +27,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.felhr.usbserial.UsbSerialDevice;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
-import org.osmdroid.tileprovider.modules.IArchiveFile;
-import org.osmdroid.tileprovider.modules.OfflineTileProvider;
-import org.osmdroid.tileprovider.tilesource.FileBasedTileSource;
-import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.tileprovider.tilesource.XYTileSource;
-import org.osmdroid.tileprovider.util.SimpleRegisterReceiver;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay2;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     MapView map;
@@ -68,11 +48,14 @@ public class MainActivity extends AppCompatActivity {
     // debug用電通大
     public static final double homePointLat = 35.658531702121714;
     public static final double homePointLon = 139.54329084890188;
+    // -----------
 
+    // debug用尾根幹
     public static final double pylonPointLat = 35.5991479;
     public static final double pylonPointLon = 139.3816600;
     //public static final double pylonPointLat = 35.6555431;
     //public static final double pylonPointLon = 139.5437312;
+    // ------------
     GeoPoint centerPoint;   // 現在値
     GeoPoint homePoint = new GeoPoint(homePointLat, homePointLon);     // プラットホーム座標;
     GeoPoint pylonPoint = new GeoPoint(pylonPointLat, pylonPointLon);    // パイロン座標
@@ -104,9 +87,14 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = "SPEECH_RECOGNIZER";
 
     // Activityとserviceの通信
-
     Messenger messenger = null;
     boolean bound;
+    // ---------------------
+
+    // 定期実行Handler
+    Handler handler;
+    Runnable r;
+    public static int previousDistanceObj = 0;  // 距離のフラグ、最新のobtainObjと比較して変化があった場合に距離の時報を再生する
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -189,6 +177,39 @@ public class MainActivity extends AppCompatActivity {
             // buttonを押したら邪魔なので見えなくする
             connectButton.setVisibility(View.GONE);
 
+            // 定期実行関数、10秒おきに高度と距離を確認して必要ならばボイスを再生
+            handler = new Handler(getMainLooper());
+            r = new Runnable() {
+                @Override
+                public void run() {
+                    speechRecognizer.stopListening();
+
+                    if(height < 2000){
+                        Message message = Message.obtain(null, SerialService.HEIGHT_1, 0, 0);
+                        try {
+                            messenger.send(message);
+                        } catch (RemoteException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }else {
+                        // 現在距離の確認
+                        int obj = outputCurrentDistanceObtainObj();
+                        if (previousDistanceObj != obj){
+                            previousDistanceObj = obj;  // フラグの更新、つまりは現在の距離の更新を意味する
+                            Message message = Message.obtain(null, obj, 0, 0);
+                            try {
+                                messenger.send(message);
+                            } catch (RemoteException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+
+                    speechRecognizer.startListening(speechRecognizerIntent);
+                    handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
+                }
+            };
+            handler.post(r);
         });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
