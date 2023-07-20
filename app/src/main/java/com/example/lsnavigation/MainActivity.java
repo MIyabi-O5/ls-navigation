@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     speechRecognizer.stopListening();
 
-                    if(height < 2000){
+                    if(height < 300){   // debug用で30cmにしとく
                         Message message = Message.obtain(null, SerialService.HEIGHT_1, 0, 0);
                         try {
                             messenger.send(message);
@@ -510,15 +510,16 @@ public class MainActivity extends AppCompatActivity {
             centerPoint = new GeoPoint(latitude, longitude);
             mapController.setCenter(centerPoint);
             // pylonPointまでの距離(m)
-            distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
+            //distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
             // homePointまでの距離(m)
-            distanceHome = 18000 - distancePylon;
+            //distanceHome = 18000 - distancePylon;
+            distanceHome = (int)calcDistance(homePointLat, pylonPointLon, latitude, longitude);
             Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
             Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
 
             // 操舵計表示
             int deg = Integer.parseInt(data[5]) - offsetValue;
-            //cadence = Integer.parseInt(data[6]);
+            //cadence = (int)Integer.parseInt(data[6]);
             cadenceMonitor.setText(String.valueOf(deg) + "\n" + String.valueOf(cadence));
             Log.i("debugCadence", "cadence" + String.valueOf(cadence));
 
@@ -532,8 +533,7 @@ public class MainActivity extends AppCompatActivity {
             }
             Log.i("debugHeight", "height" + String.valueOf(height));
 
-            //groundSpeed = Integer.parseInt(data[7]) / 1000;
-
+            //groundSpeed = (int)(Integer.parseInt(data[7]) / 1000);
 
         }
     };
