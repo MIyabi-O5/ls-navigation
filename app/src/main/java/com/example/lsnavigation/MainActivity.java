@@ -1,5 +1,7 @@
 package com.example.lsnavigation;
 
+import static java.lang.Math.abs;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -604,8 +606,13 @@ public class MainActivity extends AppCompatActivity {
             Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
             Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
 
-            // 操舵計表示
-            int deg = Integer.parseInt(data[5]) - offsetValue;
+            int deg = getCtlDeg(Integer.parseInt(data[5]));
+            if (deg < 0){
+                deg = abs(deg);
+                controlDeg.setText("DOWN" + String.valueOf(deg));
+            }else {
+                controlDeg.setText("UP" + String.valueOf(deg));
+            }
             cadence = Integer.parseInt(data[6]);
             power = Integer.parseInt(data[8]);
             String str = String.valueOf(cadence) + "RPM\n" + String.valueOf(power) + "W";
@@ -654,6 +661,77 @@ public class MainActivity extends AppCompatActivity {
     public boolean onTouchEvent(MotionEvent motionEvent){
         seekBar.setVisibility(View.VISIBLE);
         return true;
+    }
+
+    public int getCtlDeg(int pulseDeg){
+        /*
+         * 計測値から最小二乗法を用いて角度を検出
+         */
+        int deg = 0;
+        if(pulseDeg < 35){
+            deg = -15;
+        } else if (pulseDeg > 34 && pulseDeg < 65) {
+            deg = -14;
+        } else if (pulseDeg > 64 && pulseDeg < 95) {
+            deg = -13;
+        } else if (pulseDeg >94 && pulseDeg < 130) {
+            deg = -12;
+        } else if (pulseDeg > 129 && pulseDeg < 160) {
+            deg = -11;
+        } else if (pulseDeg > 159 && pulseDeg < 189) {
+            deg = -10;
+        } else if (pulseDeg > 188 && pulseDeg < 223) {
+            deg = -9;
+        } else if (pulseDeg > 222 && pulseDeg < 260) {
+            deg = -8;
+        } else if (pulseDeg > 260 && pulseDeg < 285) {
+            deg = -7;
+        }else if(pulseDeg > 284 && pulseDeg < 315){
+            deg = -6;
+        } else if (pulseDeg > 314 && pulseDeg < 348) {
+            deg = -5;
+        } else if (pulseDeg > 347 && pulseDeg < 380) {
+            deg = -4;
+        } else if (pulseDeg > 379 && pulseDeg < 411) {
+            deg = -3;
+        } else if (pulseDeg > 410 && pulseDeg < 443) {
+            deg = -2;
+        } else if (pulseDeg > 442 && pulseDeg < 475) {
+            deg = -1;
+        } else if (pulseDeg > 474 && pulseDeg < 505) {
+            deg = 0;
+        } else if (pulseDeg > 504 && pulseDeg < 535) {
+            deg = 1;
+        } else if (pulseDeg > 534 && pulseDeg < 567) {
+            deg = 2;
+        } else if (pulseDeg > 566 && pulseDeg < 597) {
+            deg = 3;
+        } else if (pulseDeg > 596 && pulseDeg < 630) {
+            deg = 4;
+        } else if (pulseDeg > 629 && pulseDeg < 660) {
+            deg = 5;
+        }else if (pulseDeg > 659 && pulseDeg < 694){
+            deg = 6;
+        } else if (pulseDeg > 693 && pulseDeg < 723) {
+            deg = 7;
+        } else if (pulseDeg > 722 && pulseDeg < 754) {
+            deg = 8;
+        } else if (pulseDeg > 753 && pulseDeg < 785) {
+            deg = 9;
+        } else if (pulseDeg > 784 && pulseDeg < 815) {
+            deg = 10;
+        }else if (pulseDeg > 814 && pulseDeg < 848){
+            deg = 11;
+        }else if(pulseDeg > 847 && pulseDeg < 880){
+            deg = 12;
+        } else if (pulseDeg > 879 && pulseDeg < 914) {
+            deg = 13;
+        }else if (pulseDeg > 913 && pulseDeg < 944){
+            deg = 14;
+        } else if (pulseDeg > 943) {
+            deg = 15;
+        }
+        return deg;
     }
 
 }
