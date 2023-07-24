@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
     public static int distanceHome = 10;
     public static int distancePylon = 10;
     public static int groundSpeed = 0;
-    public static int airSpeed = 0;
     public static int cadence = 0;
     public static int power = 0;
     public static int height = 0;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout fragmentLayout;
     ImageView imageBlack;
     TextView cadenceMonitor;
-
+    TextView controlDeg;
     SeekBar seekBar;
 
     public int offsetValue = 500;
@@ -95,7 +94,8 @@ public class MainActivity extends AppCompatActivity {
     // 定期実行Handler
     Handler handler;
     Runnable r;
-    public static int previousDistanceObj = 0;  // 距離のフラグ、最新のobtainObjと比較して変化があった場合に距離の時報を再生する
+    public boolean takeOffFlag = false;
+    public static int previousDistanceObj = -20;  // 距離のフラグ、最新のobtainObjと比較して変化があった場合に距離の時報を再生する
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
+        controlDeg = (TextView) findViewById(R.id.controlDeg);
     }
 
     @Override
@@ -183,30 +184,36 @@ public class MainActivity extends AppCompatActivity {
             r = new Runnable() {
                 @Override
                 public void run() {
-                    speechRecognizer.stopListening();
+                    //speechRecognizer.stopListening();
 
-                    if(height > 300){   // debug用で30cmにしとく
+                    if(height < 2000 && takeOffFlag){   // takeOffFlagがtrueになるまで高度注意警報は実行しない
                         Message message = Message.obtain(null, SerialService.HEIGHT_1, 0, 0);
-                        try {
-                            messenger.send(message);
-                        } catch (RemoteException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }else {
-                        // 現在距離の確認
-                        int obj = outputCurrentDistanceObtainObj();
-                        if (previousDistanceObj != obj){
-                            previousDistanceObj = obj;  // フラグの更新、つまりは現在の距離の更新を意味する
-                            Message message = Message.obtain(null, obj, 0, 0);
+                        if(messenger != null){
                             try {
                                 messenger.send(message);
                             } catch (RemoteException e) {
-                                throw new RuntimeException(e);
+                                e.printStackTrace();
+                            }
+                        }
+                    }else {
+                        // 現在距離の確認
+                        int obj = outputCurrentDistance1ObtainObj();
+                        if (previousDistanceObj != obj){
+                            takeOffFlag = true;
+                            previousDistanceObj = obj;  // フラグの更新、つまりは現在の距離の更新を意味する
+                            Message message = Message.obtain(null, obj, 0, 0);
+                            if(messenger != null){
+                                try {
+                                    messenger.send(message);
+                                } catch (RemoteException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
 
-                    speechRecognizer.startListening(speechRecognizerIntent);
+                    //speechRecognizer.startListening(speechRecognizerIntent);
+                    // すでに音声認識エンジンを起動している状態で再度エンジンを起動するとERROR_RECOGNIZER_BUSYが出力される
                     handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
                 }
             };
@@ -316,10 +323,20 @@ public class MainActivity extends AppCompatActivity {
                     obtainObj = outputCurrentAirSpeedObtainObj();
                 } else if (str.contains("パワー")) {
                     obtainObj = outputCurrentPowerObtainObj();
-                } else if(data.get(0).contains("ブラック")){
+                } else if (str.contains("準備はいい")) {
+                    obtainObj = SerialService.SYSTEM_4;
+                } else if(str.contains("暑い") || str.contains("熱い")){
+                    obtainObj = SerialService.OTHER_6;
+                } else if(str.contains("辛い") || str.contains("つらい")){
+                    obtainObj = SerialService.OTHER_5;
+                } else if(str.contains("疲れた")){
+                    obtainObj = SerialService.OTHER_4;
+                } else if(str.contains("腹減")){
+                    obtainObj = SerialService.OTHER_3;
+                } else if(str.contains("ブラック")){
                     obtainObj = SerialService.OTHER_1;
-                } else if(data.get(0).contains("ホワイト")){
-                    obtainObj = SerialService.OTHER_1;
+                } else if(str.contains("ホワイト")){
+                    obtainObj = SerialService.OTHER_2;
                 } else {
                     speechRecognizer.startListening(speechRecognizerIntent);
                     return;
@@ -422,8 +439,53 @@ public class MainActivity extends AppCompatActivity {
         } else if (distanceHome > 17499 && distanceHome < 18000) {
             obtainObj = SerialService.DISTANCE_35;
         } else {
-            obtainObj = SerialService.DISTANCE_35
-            ;
+            obtainObj = SerialService.DISTANCE_35;
+        }
+        return obtainObj;
+    }
+
+    // 距離時報用
+    private int outputCurrentDistance1ObtainObj(){
+        if (distanceHome > 30 && distanceHome < 500) {
+            obtainObj = SerialService.DISTANCE1_0;
+        } else if (distanceHome > 500 && distanceHome < 1000) {
+            obtainObj = SerialService.DISTANCE1_1;
+        } else if (distanceHome > 1000 && distanceHome < 2000) {
+            obtainObj = SerialService.DISTANCE1_2;
+        } else if (distanceHome > 2000 && distanceHome < 3000) {
+            obtainObj = SerialService.DISTANCE1_3;
+        } else if (distanceHome > 3000 && distanceHome < 4000) {
+            obtainObj = SerialService.DISTANCE1_4;
+        } else if (distanceHome > 4000 && distanceHome < 5000) {
+            obtainObj = SerialService.DISTANCE1_5;
+        } else if (distanceHome > 5000 && distanceHome < 6000) {
+            obtainObj = SerialService.DISTANCE1_6;
+        } else if (distanceHome > 6000 && distanceHome < 7000) {
+            obtainObj = SerialService.DISTANCE1_7;
+        } else if (distanceHome > 7000 && distanceHome < 8000) {
+            obtainObj = SerialService.DISTANCE1_8;
+        } else if (distanceHome > 8000 && distanceHome < 9000) {
+            obtainObj = SerialService.DISTANCE1_9;
+        } else if (distanceHome > 9000 && distanceHome < 10000) {
+            obtainObj = SerialService.DISTANCE1_10;
+        } else if (distanceHome > 10000 && distanceHome < 11000) {
+            obtainObj = SerialService.DISTANCE1_11;
+        } else if (distanceHome > 11000 && distanceHome < 12000) {
+            obtainObj = SerialService.DISTANCE1_12;
+        } else if (distanceHome > 12000 && distanceHome < 13000) {
+            obtainObj = SerialService.DISTANCE1_13;
+        } else if (distanceHome > 13000 && distanceHome < 14000) {
+            obtainObj = SerialService.DISTANCE1_14;
+        } else if (distanceHome > 14000 && distanceHome < 15000) {
+            obtainObj = SerialService.DISTANCE1_15;
+        } else if (distanceHome > 15000 && distanceHome < 16000) {
+            obtainObj = SerialService.DISTANCE1_16;
+        } else if (distanceHome > 16000 && distanceHome < 17000) {
+            obtainObj = SerialService.DISTANCE1_17;
+        } else if (distanceHome > 17000 && distanceHome < 18000) {
+            obtainObj = SerialService.DISTANCE1_18;
+        } else {
+            obtainObj = -20;
         }
         return obtainObj;
     }
@@ -472,6 +534,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int outputCurrentPowerObtainObj(){
+        if (power < 200) {
+            obtainObj = SerialService.POWER_1;
+        } else if (power > 200 && power < 230) {
+            obtainObj = SerialService.POWER_2;
+        } else if (power > 230 && power < 250) {
+            obtainObj = SerialService.POWER_3;
+        } else if (power > 250 && power < 280) {
+            obtainObj = SerialService.POWER_4;
+        } else if (power > 280 && power < 300) {
+            obtainObj = SerialService.POWER_5;
+        } else if (power > 300 && power < 330) {
+            obtainObj = SerialService.POWER_6;
+        } else if (power > 330 && power < 350) {
+            obtainObj = SerialService.POWER_7;
+        } else if (power > 350 && power < 380) {
+            obtainObj = SerialService.POWER_8;
+        } else if (power > 380 && power < 400) {
+            obtainObj = SerialService.POWER_9;
+        } else if (power > 400) {
+            obtainObj = SerialService.POWER_10;
+        } else {
+            obtainObj = SerialService.OTHER_1;
+        }
         return obtainObj;
     }
 
@@ -514,17 +599,18 @@ public class MainActivity extends AppCompatActivity {
             //distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
             // homePointまでの距離(m)
             //distanceHome = 18000 - distancePylon;
-            distanceHome = (int)calcDistance(homePointLat, pylonPointLon, latitude, longitude);
+            distanceHome = (int)calcDistance(homePointLat, homePointLon, latitude, longitude);
 
             Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
             Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
 
             // 操舵計表示
             int deg = Integer.parseInt(data[5]) - offsetValue;
-            cadence = (int)Integer.parseInt(data[6]);
-            cadenceMonitor.setText(String.valueOf(deg) + "\n" + String.valueOf(cadence));
+            cadence = Integer.parseInt(data[6]);
+            power = Integer.parseInt(data[8]);
+            String str = String.valueOf(cadence) + "RPM\n" + String.valueOf(power) + "W";
+            cadenceMonitor.setText(str);
             Log.i("debugCadence", "cadence" + String.valueOf(cadence));
-
 
             // 高度の色表示
             height = Integer.parseInt(data[4]);
@@ -535,7 +621,8 @@ public class MainActivity extends AppCompatActivity {
             }
             Log.i("debugHeight", "height" + String.valueOf(height));
 
-            groundSpeed = (int)(Integer.parseInt(data[7]) / 1000);
+            groundSpeed = (Integer.parseInt(data[7]) / 1000);
+
         }
     };
 
