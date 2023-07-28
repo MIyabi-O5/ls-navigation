@@ -36,79 +36,13 @@ public class SerialService extends Service {
 
     // ---ActivityからServiceの受信部、音声認識の結果をserial.writeする
     Messenger messenger;
-    static final int DISTANCE_0 = 0;    // 0.5km以下
-    static final int DISTANCE_1 = 1;    // 0.5Km
-    static final int DISTANCE_2 = 2;    // 1.0km
-    static final int DISTANCE_3 = 3;    // 1.5km
-    static final int DISTANCE_4 = 4;    // 2.0km
-    static final int DISTANCE_5 = 5;    // 2.5km
-    static final int DISTANCE_6 = 6;    // 3.0Km
-    static final int DISTANCE_7 = 7;    // 3.5km
-    static final int DISTANCE_8 = 8;    // 4.0km
-    static final int DISTANCE_9 = 9;    // 4.5km
-    static final int DISTANCE_10 = 10;  // 5.0km
-    static final int DISTANCE_11 = 11;  // 5.5Km
-    static final int DISTANCE_12 = 12;  // 6.0km
-    static final int DISTANCE_13 = 13;  // 6.5km
-    static final int DISTANCE_14 = 14;  // 7.0km
-    static final int DISTANCE_15 = 15;  // 7.5km
-    static final int DISTANCE_16 = 16;  // 8.0km
-    static final int DISTANCE_17 = 17;  // 8.5Km
-    static final int DISTANCE_18 = 18;  // 9.0km
-    static final int DISTANCE_19 = 19;  // 9.5km
-    static final int DISTANCE_20 = 20;  // 10.0km
-    static final int DISTANCE_21 = 21;  // 10.5km
-    static final int DISTANCE_22 = 22;  // 11.0km
-    static final int DISTANCE_23 = 23;  // 11.5Km
-    static final int DISTANCE_24 = 24;  // 12.0km
-    static final int DISTANCE_25 = 25;  // 12.5km
-    static final int DISTANCE_26 = 26;  // 13.0km
-    static final int DISTANCE_27 = 27;  // 13.5km
-    static final int DISTANCE_28 = 28;  // 14.0km
-    static final int DISTANCE_29 = 29;  // 14.5Km
-    static final int DISTANCE_30 = 30;  // 15.0km
-    static final int DISTANCE_31 = 31;  // 15.5km
-    static final int DISTANCE_32 = 32;  // 16.0km
-    static final int DISTANCE_33 = 33;  // 16.5km
-    static final int DISTANCE_34 = 34;  // 17.0km
-    static final int DISTANCE_35 = 35;  // 17.5km
-    static final int DISTANCE_36 = 36;  // 18.0km
 
-    // 距離時報用
-    static final int DISTANCE1_0 = -1;    // 離陸
-    static final int DISTANCE1_1 = -2;    // 0.5km
-    static final int DISTANCE1_2 = -3;    // 1.0km
-    static final int DISTANCE1_3 = -4;    // 2.0km
-    static final int DISTANCE1_4 = -5;    // 3.0km
-    static final int DISTANCE1_5 = -6;    // 4.0km
-    static final int DISTANCE1_6 = -7;    // 5.0Km
-    static final int DISTANCE1_7 = -8;    // 6.0km
-    static final int DISTANCE1_8 = -9;    // 7.0km
-    static final int DISTANCE1_9 = -10;    // 8.0km
-    static final int DISTANCE1_10 = -11;  // 9.0km
-    static final int DISTANCE1_11 = -12;  // 10.0Km
-    static final int DISTANCE1_12 = -13;  // 11.0km
-    static final int DISTANCE1_13 = -14;  // 12.0km
-    static final int DISTANCE1_14 = -15;  // 13.0km
-    static final int DISTANCE1_15 = -16;  // 14.0km
-    static final int DISTANCE1_16 = -17;  // 15.0km
-    static final int DISTANCE1_17 = -18;  // 16.0Km
-    static final int DISTANCE1_18 = -19;  // 17.0km
-
-    // 高度
-    static final int HEIGHT_1 = 41;     // 2m<
-    static final int HEIGHT_2 = 42;     // 2m<<3m
-    static final int HEIGHT_3 = 43;     // 3m<<4m
-    static final int HEIGHT_4 = 44;     // 4m<<5m
-    static final int HEIGHT_5 = 45;     // 5m>>
-
-    // 対地速度
-    static final int GROUND_SPEED_1 = 51;
-    static final int GROUND_SPEED_2 = 52;
-    static final int GROUND_SPEED_3 = 53;
-    static final int GROUND_SPEED_4 = 54;
-    static final int GROUND_SPEED_5 = 55;
-    static final int GROUND_SPEED_6 = 56;
+    // systemボイス
+    static final int SYSTEM_1 = 201;
+    static final int SYSTEM_2 = 202;
+    static final int SYSTEM_3 = 203;
+    static final int SYSTEM_4 = 204;
+    static final int SYSTEM_5 = 205;
 
     // ポワー
     static final int POWER_1 = 80;  // <<200w
@@ -122,20 +56,72 @@ public class SerialService extends Service {
     static final int POWER_9 = 88;  // 380w<<400w
     static final int POWER_10 = 89;  // 400w<<
 
-    // ケイデンス
-    static final int CADENCE_1 = 90; // <<80
-    static final int CADENCE_2 = 91; // 80<<85
-    static final int CADENCE_3 = 92; // 85<<90
-    static final int CADENCE_4 = 93; // 90<<95
-    static final int CADENCE_5 = 95; // 95<<100
-    static final int CADENCE_6 = 96; // 100>>
+    // 距離報告用ボイス
+    static final int DISTANCE_0 = 0;    // 0.5km以下
+    static final int DISTANCE_1 = 1;    // 1Km
+    static final int DISTANCE_2 = 2;    // 2km
+    static final int DISTANCE_3 = 3;    // 3km
+    static final int DISTANCE_4 = 4;    // 4km
+    static final int DISTANCE_5 = 5;    // 5km
+    static final int DISTANCE_6 = 6;    // 6Km
+    static final int DISTANCE_7 = 7;    // 7km
+    static final int DISTANCE_8 = 8;    // 8km
+    static final int DISTANCE_9 = 9;    // 9km
+    static final int DISTANCE_10 = 10;  // 10km
+    static final int DISTANCE_11 = 11;  // 11Km
+    static final int DISTANCE_12 = 12;  // 12km
+    static final int DISTANCE_13 = 13;  // 13km
+    static final int DISTANCE_14 = 14;  // 14km
+    static final int DISTANCE_15 = 15;  // 15km
+    static final int DISTANCE_16 = 16;  // 16km
+    static final int DISTANCE_17 = 17;  // 17Km
+    static final int DISTANCE_18 = 18;  // 18km
 
-    // systemボイス
-    static final int SYSTEM_1 = 201;
-    static final int SYSTEM_2 = 202;
-    static final int SYSTEM_3 = 203;
-    static final int SYSTEM_4 = 204;
-    static final int SYSTEM_5 = 205;
+    // 距離時報用
+    static final int DISTANCE1_1 = -1;    // 1キロ以下
+    static final int DISTANCE1_10 = -2;    // 1キロ
+    static final int DISTANCE1_13 = -3;    // 1.0km
+    static final int DISTANCE1_15 = -4;    // 2.0km
+    static final int DISTANCE1_18 = -5;    // 3.0km
+    static final int DISTANCE1_20 = -6;    // 4.0km
+    static final int DISTANCE1_23 = -7;    // 5.0Km
+    static final int DISTANCE1_25 = -8;    // 6.0km
+    static final int DISTANCE1_28 = -9;    // 7.0km
+    static final int DISTANCE1_30 = -10;    // 8.0km
+    static final int DISTANCE1_33 = -11;  // 9.0km
+    static final int DISTANCE1_35 = -12;  // 10.0Km
+    static final int DISTANCE1_38 = -13;  // 11.0km
+    static final int DISTANCE1_40 = -14;  // 12.0km
+    static final int DISTANCE1_43 = -15;  // 13.0km
+    static final int DISTANCE1_45 = -16;  // 14.0km
+    static final int DISTANCE1_48 = -17;  // 15.0km
+    static final int DISTANCE1_50 = -18;  // 16.0Km
+    static final int DISTANCE1_53 = -19;  // 17.0km
+
+    // 高度
+    static final int HEIGHT_1 = 41;     // 2m<
+    static final int HEIGHT_11 = 42;     // 2m<
+    static final int HEIGHT_12 = 43;     // 2m<
+
+    static final int HEIGHT_2 = 44;     // 2m<<3m
+    static final int HEIGHT_3 = 45;     // 3m<<4m
+    static final int HEIGHT_4 = 46;     // 4m<<5m
+    static final int HEIGHT_5 = 47;     // 5m>>
+
+    // 対気速度
+    static final int AIR_SPEED_1 = 61;
+    static final int AIR_SPEED_2 = 62;
+    static final int AIR_SPEED_3 = 63;
+    static final int AIR_SPEED_4 = 64;
+    static final int AIR_SPEED_5 = 65;
+
+    // 対地速度
+    static final int GROUND_SPEED_1 = 51;
+    static final int GROUND_SPEED_2 = 52;
+    static final int GROUND_SPEED_3 = 53;
+    static final int GROUND_SPEED_4 = 54;
+    static final int GROUND_SPEED_5 = 55;
+    static final int GROUND_SPEED_6 = 56;
 
     // サービスボイス♡
     static final int OTHER_1 = 101;
@@ -144,6 +130,21 @@ public class SerialService extends Service {
     static final int OTHER_4 = 104;
     static final int OTHER_5 = 105;
     static final int OTHER_6 = 106;
+    static final int OTHER_7 = 107;
+    static final int OTHER_8 = 108;
+    static final int OTHER_9 = 109;
+    static final int OTHER_10 = 110;
+    static final int OTHER_11 = 111;
+    static final int OTHER_12 = 112;
+    static final int OTHER_13 = 113;
+    static final int OTHER_14 = 114;
+    static final int OTHER_15 = 115;
+    static final int OTHER_16 = 116;
+    static final int OTHER_17 = 117;
+    static final int OTHER_18 = 118;
+    static final int OTHER_19 = 119;
+    static final int OTHER_20 = 120;
+    static final int OTHER_21 = 121;
 
     static class VoiceHandler extends Handler{
 
@@ -154,64 +155,47 @@ public class SerialService extends Service {
         @Override
         public void handleMessage(Message msg){
             switch (msg.what) {
-                case DISTANCE1_0:
+                case SYSTEM_4:
+                    serial.syncWrite("system_4.wav".getBytes(), 1000);
+                    break;
+                case SYSTEM_5:  // 離陸を確認
                     serial.syncWrite("system_5.wav".getBytes(), 1000);
                     break;
-                case DISTANCE1_1:
-                    serial.syncWrite("distance1_1.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_2:
-                    serial.syncWrite("distance1_2.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_3:
-                    serial.syncWrite("distance1_3.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_4:
-                    serial.syncWrite("distance1_4.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_5:
-                    serial.syncWrite("distance1_5.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_6:
-                    serial.syncWrite("distance1_6.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_7:
-                    serial.syncWrite("distance1_7.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_8:
-                    serial.syncWrite("distance1_8.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_9:
-                    serial.syncWrite("distance1_9.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_10:
-                    serial.syncWrite("distance1_10.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_11:
-                    serial.syncWrite("distance1_11.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_12:
-                    serial.syncWrite("distance1_12.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_13:
-                    serial.syncWrite("distance1_13.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_14:
-                    serial.syncWrite("distance1_14.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_15:
-                    serial.syncWrite("distance1_15.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_16:
-                    serial.syncWrite("distance1_16.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_17:
-                    serial.syncWrite("distance1_17.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE1_18:
-                    serial.syncWrite("distance1_18.wav".getBytes(), 1000);
-                    break;
 
+                // パワー
+                case POWER_1:
+                    serial.syncWrite("power_1.wav".getBytes(), 1000);
+                    break;
+                case POWER_2:
+                    serial.syncWrite("power_2.wav".getBytes(), 1000);
+                    break;
+                case POWER_3:
+                    serial.syncWrite("power_3.wav".getBytes(), 1000);
+                    break;
+                case POWER_4:
+                    serial.syncWrite("power_4.wav".getBytes(), 1000);
+                    break;
+                case POWER_5:
+                    serial.syncWrite("power_5.wav".getBytes(), 1000);
+                    break;
+                case POWER_6:
+                    serial.syncWrite("power_6.wav".getBytes(), 1000);
+                    break;
+                case POWER_7:
+                    serial.syncWrite("power_7.wav".getBytes(), 1000);
+                    break;
+                case POWER_8:
+                    serial.syncWrite("power_8.wav".getBytes(), 1000);
+                    break;
+                case POWER_9:
+                    serial.syncWrite("power_9.wav".getBytes(), 1000);
+                    break;
+                case POWER_10:
+                    serial.syncWrite("power_10.wav".getBytes(), 1000);
+                    break;
+                // -------------
+
+                // 距離ボイス報告用
                 case DISTANCE_0:
                     serial.syncWrite("distance_0.wav".getBytes(), 1000);
                     break;
@@ -269,91 +253,66 @@ public class SerialService extends Service {
                 case DISTANCE_18:
                     serial.syncWrite("distance_18.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_19:
-                    serial.syncWrite("distance_19.wav".getBytes(), 1000);
+                // -------------
+
+                // 距離音声認識用
+                case DISTANCE1_1:
+                    serial.syncWrite("distance1_1.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_20:
-                    serial.syncWrite("distance_20.wav".getBytes(), 1000);
+                case DISTANCE1_10:
+                    serial.syncWrite("distance1_10.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_21:
-                    serial.syncWrite("distance_21.wav".getBytes(), 1000);
+                case DISTANCE1_13:
+                    serial.syncWrite("distance1_13.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_22:
-                    serial.syncWrite("distance_22.wav".getBytes(), 1000);
+                case DISTANCE1_15:
+                    serial.syncWrite("distance1_15.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_23:
-                    serial.syncWrite("distance_23.wav".getBytes(), 1000);
+                case DISTANCE1_18:
+                    serial.syncWrite("distance1_18.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_24:
-                    serial.syncWrite("distance_24.wav".getBytes(), 1000);
+                case DISTANCE1_20:
+                    serial.syncWrite("distance1_20.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_25:
-                    serial.syncWrite("distance_25.wav".getBytes(), 1000);
+                case DISTANCE1_23:
+                    serial.syncWrite("distance1_23.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_26:
-                    serial.syncWrite("distance_26.wav".getBytes(), 1000);
+                case DISTANCE1_25:
+                    serial.syncWrite("distance1_25.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_27:
-                    serial.syncWrite("distance_27.wav".getBytes(), 1000);
+                case DISTANCE1_28:
+                    serial.syncWrite("distance1_28.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_28:
-                    serial.syncWrite("distance_28.wav".getBytes(), 1000);
+                case DISTANCE1_30:
+                    serial.syncWrite("distance1_30.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_29:
-                    serial.syncWrite("distance_29.wav".getBytes(), 1000);
+                case DISTANCE1_33:
+                    serial.syncWrite("distance1_33.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_30:
-                    serial.syncWrite("distance_30.wav".getBytes(), 1000);
+                case DISTANCE1_35:
+                    serial.syncWrite("distance1_35.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_31:
-                    serial.syncWrite("distance_31.wav".getBytes(), 1000);
+                case DISTANCE1_38:
+                    serial.syncWrite("distance1_38.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_32:
-                    serial.syncWrite("distance_32.wav".getBytes(), 1000);
+                case DISTANCE1_40:
+                    serial.syncWrite("distance1_40.wav".getBytes(), 1000);
                     break;
-                case DISTANCE_33:
-                    serial.syncWrite("distance_33.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE_34:
-                    serial.syncWrite("distance_34.wav".getBytes(), 1000);
-                    break;
-                case DISTANCE_35:
-                    serial.syncWrite("distance_35.wav".getBytes(), 1000);
+                case DISTANCE1_43:
+                    serial.syncWrite("distance1_43.wav".getBytes(), 1000);
                     break;
 
-                case POWER_1:
-                    serial.syncWrite("power_1.wav".getBytes(), 1000);
-                    break;
-                case POWER_2:
-                    serial.syncWrite("power_2.wav".getBytes(), 1000);
-                    break;
-                case POWER_3:
-                    serial.syncWrite("power_3.wav".getBytes(), 1000);
-                    break;
-                case POWER_4:
-                    serial.syncWrite("power_4.wav".getBytes(), 1000);
-                    break;
-                case POWER_5:
-                    serial.syncWrite("power_5.wav".getBytes(), 1000);
-                    break;
-                case POWER_6:
-                    serial.syncWrite("power_6.wav".getBytes(), 1000);
-                    break;
-                case POWER_7:
-                    serial.syncWrite("power_7.wav".getBytes(), 1000);
-                    break;
-                case POWER_8:
-                    serial.syncWrite("power_8.wav".getBytes(), 1000);
-                    break;
-                case POWER_9:
-                    serial.syncWrite("power_9.wav".getBytes(), 1000);
-                    break;
-                case POWER_10:
-                    serial.syncWrite("power_10.wav".getBytes(), 1000);
-                    break;
+                // ---------------
 
+                // 高度
                 case HEIGHT_1:
                     serial.syncWrite("height_1.wav".getBytes(), 1000);
+                    break;
+                case HEIGHT_11:
+                    serial.syncWrite("height_11.wav".getBytes(), 1000);
+                    break;
+                case HEIGHT_12:
+                    serial.syncWrite("height_12.wav".getBytes(), 1000);
                     break;
                 case HEIGHT_2:
                     serial.syncWrite("height_2.wav".getBytes(), 1000);
@@ -367,28 +326,47 @@ public class SerialService extends Service {
                 case HEIGHT_5:
                     serial.syncWrite("height_5.wav".getBytes(), 1000);
                     break;
+                // --------------
 
+                // 対気速度
+                case AIR_SPEED_1:
+                    serial.syncWrite("airSpeed_1.wav".getBytes(), 1000);
+                    break;
+                case AIR_SPEED_2:
+                    serial.syncWrite("airSpeed_2.wav".getBytes(), 1000);
+                    break;
+                case AIR_SPEED_3:
+                    serial.syncWrite("airSpeed_3.wav".getBytes(), 1000);
+                    break;
+                case AIR_SPEED_4:
+                    serial.syncWrite("airSpeed_4.wav".getBytes(), 1000);
+                    break;
+                case AIR_SPEED_5:
+                    serial.syncWrite("airSpeed_5.wav".getBytes(), 1000);
+                    break;
+                // ---------------
+
+                // 対地速度
                 case GROUND_SPEED_1:
-                    serial.syncWrite("groundSpeed_1.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_10.wav".getBytes(), 1000);
                     break;
                 case GROUND_SPEED_2:
-                    serial.syncWrite("groundSpeed_2.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_15.wav".getBytes(), 1000);
                     break;
                 case GROUND_SPEED_3:
-                    serial.syncWrite("groundSpeed_3.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_17.wav".getBytes(), 1000);
                     break;
                 case GROUND_SPEED_4:
-                    serial.syncWrite("groundSpeed_4.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_20.wav".getBytes(), 1000);
                     break;
                 case GROUND_SPEED_5:
-                    serial.syncWrite("groundSpeed_5.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_22.wav".getBytes(), 1000);
                     break;
                 case GROUND_SPEED_6:
-                    serial.syncWrite("groundSpeed_6.wav".getBytes(), 1000);
+                    serial.syncWrite("groundSpeed_25.wav".getBytes(), 1000);
                     break;
-                case SYSTEM_4:
-                    serial.syncWrite("system_4.wav".getBytes(), 1000);
-                    break;
+                // -----------------
+
                 case OTHER_1:
                     serial.syncWrite("other_1.wav".getBytes(), 1000);
                     break;
@@ -406,6 +384,51 @@ public class SerialService extends Service {
                     break;
                 case OTHER_6:
                     serial.syncWrite("other_6.wav".getBytes(), 1000);
+                    break;
+                case OTHER_7:
+                    serial.syncWrite("other_7.wav".getBytes(), 1000);
+                    break;
+                case OTHER_8:
+                    serial.syncWrite("other_8.wav".getBytes(), 1000);
+                    break;
+                case OTHER_9:
+                    serial.syncWrite("other_9.wav".getBytes(), 1000);
+                    break;
+                case OTHER_10:
+                    serial.syncWrite("other_10.wav".getBytes(), 1000);
+                    break;
+                case OTHER_11:
+                    serial.syncWrite("other_11.wav".getBytes(), 1000);
+                    break;
+                case OTHER_12:
+                    serial.syncWrite("other_12.wav".getBytes(), 1000);
+                    break;
+                case OTHER_13:
+                    serial.syncWrite("other_13.wav".getBytes(), 1000);
+                    break;
+                case OTHER_14:
+                    serial.syncWrite("other_14.wav".getBytes(), 1000);
+                    break;
+                case OTHER_15:
+                    serial.syncWrite("other_15.wav".getBytes(), 1000);
+                    break;
+                case OTHER_16:
+                    serial.syncWrite("other_16.wav".getBytes(), 1000);
+                    break;
+                case OTHER_17:
+                    serial.syncWrite("other_17.wav".getBytes(), 1000);
+                    break;
+                case OTHER_18:
+                    serial.syncWrite("other_18.wav".getBytes(), 1000);
+                    break;
+                case OTHER_19:
+                    serial.syncWrite("other_19.wav".getBytes(), 1000);
+                    break;
+                case OTHER_20:
+                    serial.syncWrite("other_20.wav".getBytes(), 1000);
+                    break;
+                case OTHER_21:
+                    serial.syncWrite("other_21.wav".getBytes(), 1000);
                     break;
             }
         }

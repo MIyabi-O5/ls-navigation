@@ -43,21 +43,22 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     MapView map;
     IMapController mapController;
 
+    Random rand = new Random();
+
     // debug用電通大
-    public static final double homePointLat = 35.658531702121714;
-    public static final double homePointLon = 139.54329084890188;
+    public static final double homePointLat = 35.2949664;
+    public static final double homePointLon = 136.2555092;
     // -----------
 
     // debug用尾根幹
-    public static final double pylonPointLat = 35.5991479;
-    public static final double pylonPointLon = 139.3816600;
-    //public static final double pylonPointLat = 35.6555431;
-    //public static final double pylonPointLon = 139.5437312;
+    public static final double pylonPointLat = 35.2935037;
+    public static final double pylonPointLon = 139.2556463;
     // ------------
     GeoPoint centerPoint;   // 現在値
     GeoPoint homePoint = new GeoPoint(homePointLat, homePointLon);     // プラットホーム座標;
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public static int cadence = 0;
     public static int power = 0;
     public static int height = 0;
+    public static int deg = 0;
 
     public static int obtainObj;
 
@@ -153,11 +155,11 @@ public class MainActivity extends AppCompatActivity {
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        centerPoint = new GeoPoint(35.658531702121714, 139.54329084890188);
+        centerPoint = new GeoPoint(35.2935037, 136.2556463);
 
         mapController.setCenter(centerPoint);
         map.setMultiTouchControls(true);
-        mapController.setZoom(16.0);
+        mapController.setZoom(15.0);
 
         // パイロン座標の表示
         Marker marker = new Marker(map);
@@ -188,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     //speechRecognizer.stopListening();
 
-                    if(height < 2000 && takeOffFlag){   // takeOffFlagがtrueになるまで高度注意警報は実行しない
+                    if(height > 2000 && takeOffFlag){   // takeOffFlagがtrueになるまで高度注意警報は実行しない
                         Message message = Message.obtain(null, SerialService.HEIGHT_1, 0, 0);
                         if(messenger != null){
                             try {
@@ -305,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onResults");
                 Message msg = null;
                 ArrayList<String> data = results.getStringArrayList(speechRecognizer.RESULTS_RECOGNITION);
+                // debug用、本番では消す
                 cadenceMonitor.setText(data.get(0));
                 if(!bound){
                     speechRecognizer.startListening(speechRecognizerIntent);
@@ -313,32 +316,44 @@ public class MainActivity extends AppCompatActivity {
 
                 String str = data.get(0);
 
-                if(str.contains("距離")) {
+                if (str.contains("準備") && str.contains("オッケー")) {
+                    obtainObj = SerialService.SYSTEM_4;
+                } else if (str.contains("パワー")) {
+                    obtainObj = outputCurrentPowerObtainObj();
+                } else if (str.contains("距離")) {
                     obtainObj = outputCurrentDistanceObtainObj();
                 } else if (str.contains("コード")) {   // 音声認識辞書データの都合上"高度"="コード"と読み取ってしまう
                     obtainObj = outputCurrentHeightObtainObj();
-                } else if (str.contains("ケイデンス")) {
-                    obtainObj = outputCurrentCadenceObtainObj();
                 } else if (str.contains("速度")) {
                     obtainObj = outputCurrentGroundSpeedObtainObj();
                 } else if (str.contains("風速")) {
                     obtainObj = outputCurrentAirSpeedObtainObj();
-                } else if (str.contains("パワー")) {
-                    obtainObj = outputCurrentPowerObtainObj();
-                } else if (str.contains("準備はいい")) {
-                    obtainObj = SerialService.SYSTEM_4;
                 } else if(str.contains("暑い") || str.contains("熱い")){
+                    obtainObj = rand.nextInt(2) + SerialService.OTHER_9;
+                } else if(str.contains("辛い") || str.contains("つらい") || str.contains("きつい") || str.contains("疲れた")) {
+                    obtainObj = rand.nextInt(3) + SerialService.OTHER_6;
+                }else if (str.contains("気持ちいい")) {
                     obtainObj = SerialService.OTHER_6;
-                } else if(str.contains("辛い") || str.contains("つらい")){
-                    obtainObj = SerialService.OTHER_5;
-                } else if(str.contains("疲れた")){
-                    obtainObj = SerialService.OTHER_4;
-                } else if(str.contains("腹減")){
+                }else if (str.contains("楽しい")) {
+                    obtainObj = rand.nextInt(2) + SerialService.OTHER_12;
+                } else if (str.contains("調子どう")) {
+                    obtainObj = SerialService.OTHER_11;
+                } else if (str.contains("朝何食べた")) {
+                    obtainObj = SerialService.OTHER_12;
+                } else if(str.contains("腹減")) {
                     obtainObj = SerialService.OTHER_3;
+                } else if (str.contains("行ってくるあばよ")) {
+                    obtainObj = SerialService.OTHER_18;
+                } else if (str.contains("おはよう")) {
+                    obtainObj = SerialService.OTHER_19;
+                } else if (str.contains("今日の目標")) {
+                    obtainObj = SerialService.OTHER_20;
+                } else if (str.contains("レモンティー")) {
+                    obtainObj = SerialService.OTHER_20;
                 } else if(str.contains("ブラック")){
-                    obtainObj = SerialService.OTHER_1;
+                    obtainObj = rand.nextInt(2) + SerialService.OTHER_1;
                 } else if(str.contains("ホワイト")){
-                    obtainObj = SerialService.OTHER_2;
+                    obtainObj = rand.nextInt(2) + SerialService.OTHER_3;
                 } else {
                     speechRecognizer.startListening(speechRecognizerIntent);
                     return;
@@ -367,145 +382,103 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private int outputCurrentDistanceObtainObj(){
-        if (distanceHome > 0 && distanceHome < 500) {
+    // 距離時報用
+    private int outputCurrentDistance1ObtainObj(){
+        if  (distanceHome > 30 && distanceHome < 500) {
+            obtainObj = SerialService.SYSTEM_5;
+        } else if (distanceHome > 500 && distanceHome < 1000) {
             obtainObj = SerialService.DISTANCE_0;
-        } else if (distanceHome > 499 && distanceHome < 1000) {
+        } else if (distanceHome > 999 && distanceHome < 2000) {
             obtainObj = SerialService.DISTANCE_1;
-        } else if (distanceHome > 999 && distanceHome < 1500) {
+        } else if (distanceHome > 1999 && distanceHome < 3000) {
             obtainObj = SerialService.DISTANCE_2;
-        } else if (distanceHome > 1499 && distanceHome < 2000) {
+        } else if (distanceHome > 2999 && distanceHome < 4000) {
             obtainObj = SerialService.DISTANCE_3;
-        } else if (distanceHome > 1999 && distanceHome < 2500) {
+        } else if (distanceHome > 3999 && distanceHome < 5000) {
             obtainObj = SerialService.DISTANCE_4;
-        } else if (distanceHome > 2499 && distanceHome < 3000) {
+        } else if (distanceHome > 4999 && distanceHome < 6000) {
             obtainObj = SerialService.DISTANCE_5;
-        } else if (distanceHome > 2999 && distanceHome < 3500) {
+        } else if (distanceHome > 5999 && distanceHome < 7000) {
             obtainObj = SerialService.DISTANCE_6;
-        } else if (distanceHome > 3499 && distanceHome < 4000) {
+        } else if (distanceHome > 6999 && distanceHome < 8000) {
             obtainObj = SerialService.DISTANCE_7;
-        } else if (distanceHome > 3999 && distanceHome < 4500) {
+        } else if (distanceHome > 7999 && distanceHome < 9000) {
             obtainObj = SerialService.DISTANCE_8;
-        } else if (distanceHome > 4499 && distanceHome < 5000) {
+        } else if (distanceHome > 8999 && distanceHome < 10000) {
             obtainObj = SerialService.DISTANCE_9;
-        } else if (distanceHome > 4999 && distanceHome < 5500) {
+        } else if (distanceHome > 9999 && distanceHome < 11000) {
             obtainObj = SerialService.DISTANCE_10;
-        } else if (distanceHome > 5499 && distanceHome < 6000) {
+        } else if (distanceHome > 10999 && distanceHome < 12000) {
             obtainObj = SerialService.DISTANCE_11;
-        } else if (distanceHome > 5999 && distanceHome < 6500) {
+        } else if (distanceHome > 11999 && distanceHome < 13000) {
             obtainObj = SerialService.DISTANCE_12;
-        } else if (distanceHome > 6499 && distanceHome < 7000) {
+        } else if (distanceHome > 12999 && distanceHome < 14000) {
             obtainObj = SerialService.DISTANCE_13;
-        } else if (distanceHome > 6999 && distanceHome < 7500) {
+        } else if (distanceHome > 13999 && distanceHome < 15000) {
             obtainObj = SerialService.DISTANCE_14;
-        } else if (distanceHome > 7499 && distanceHome < 8000) {
+        } else if (distanceHome > 14999 && distanceHome < 16000) {
             obtainObj = SerialService.DISTANCE_15;
-        } else if (distanceHome > 7999 && distanceHome < 8500) {
+        } else if (distanceHome > 15999 && distanceHome < 17000) {
             obtainObj = SerialService.DISTANCE_16;
-        } else if (distanceHome > 8499 && distanceHome < 9000) {
+        } else if (distanceHome > 16999) {
             obtainObj = SerialService.DISTANCE_17;
-        } else if (distanceHome > 8999 && distanceHome < 9500) {
+        } else if(distanceHome > 17000){
             obtainObj = SerialService.DISTANCE_18;
-        } else if (distanceHome > 9499 && distanceHome < 10000) {
-            obtainObj = SerialService.DISTANCE_19;
-        } else if (distanceHome > 9999 && distanceHome < 10500) {
-            obtainObj = SerialService.DISTANCE_20;
-        } else if (distanceHome > 10499 && distanceHome < 11000) {
-            obtainObj = SerialService.DISTANCE_21;
-        } else if (distanceHome > 10999 && distanceHome < 11500) {
-            obtainObj = SerialService.DISTANCE_22;
-        } else if (distanceHome > 11499 && distanceHome < 12000) {
-            obtainObj = SerialService.DISTANCE_23;
-        } else if (distanceHome > 11999 && distanceHome < 12500) {
-            obtainObj = SerialService.DISTANCE_24;
-        } else if (distanceHome > 12499 && distanceHome < 13000) {
-            obtainObj = SerialService.DISTANCE_25;
-        } else if (distanceHome > 12999 && distanceHome < 13500) {
-            obtainObj = SerialService.DISTANCE_26;
-        } else if (distanceHome > 13499 && distanceHome < 14000) {
-            obtainObj = SerialService.DISTANCE_27;
-        } else if (distanceHome > 13999 && distanceHome < 14500) {
-            obtainObj = SerialService.DISTANCE_28;
-        } else if (distanceHome > 14499 && distanceHome < 15000) {
-            obtainObj = SerialService.DISTANCE_29;
-        } else if (distanceHome > 14999 && distanceHome < 15500) {
-            obtainObj = SerialService.DISTANCE_30;
-        } else if (distanceHome > 15499 && distanceHome < 16000) {
-            obtainObj = SerialService.DISTANCE_31;
-        } else if (distanceHome > 15999 && distanceHome < 16500) {
-            obtainObj = SerialService.DISTANCE_32;
-        } else if (distanceHome > 16499 && distanceHome < 17000) {
-            obtainObj = SerialService.DISTANCE_33;
-        } else if (distanceHome > 16999 && distanceHome < 17500) {
-            obtainObj = SerialService.DISTANCE_34;
-        } else if (distanceHome > 17499 && distanceHome < 18000) {
-            obtainObj = SerialService.DISTANCE_35;
-        } else {
-            obtainObj = SerialService.DISTANCE_35;
         }
         return obtainObj;
     }
 
-    // 距離時報用
-    private int outputCurrentDistance1ObtainObj(){
-        if (distanceHome > 30 && distanceHome < 500) {
-            obtainObj = SerialService.DISTANCE1_0;
-        } else if (distanceHome > 500 && distanceHome < 1000) {
+    private int outputCurrentDistanceObtainObj(){
+        if (distanceHome < 1000) {
             obtainObj = SerialService.DISTANCE1_1;
-        } else if (distanceHome > 1000 && distanceHome < 2000) {
-            obtainObj = SerialService.DISTANCE1_2;
-        } else if (distanceHome > 2000 && distanceHome < 3000) {
-            obtainObj = SerialService.DISTANCE1_3;
-        } else if (distanceHome > 3000 && distanceHome < 4000) {
-            obtainObj = SerialService.DISTANCE1_4;
-        } else if (distanceHome > 4000 && distanceHome < 5000) {
-            obtainObj = SerialService.DISTANCE1_5;
-        } else if (distanceHome > 5000 && distanceHome < 6000) {
-            obtainObj = SerialService.DISTANCE1_6;
-        } else if (distanceHome > 6000 && distanceHome < 7000) {
-            obtainObj = SerialService.DISTANCE1_7;
-        } else if (distanceHome > 7000 && distanceHome < 8000) {
-            obtainObj = SerialService.DISTANCE1_8;
-        } else if (distanceHome > 8000 && distanceHome < 9000) {
-            obtainObj = SerialService.DISTANCE1_9;
-        } else if (distanceHome > 9000 && distanceHome < 10000) {
+        } else if (distanceHome > 1000 && distanceHome < 1300) {
             obtainObj = SerialService.DISTANCE1_10;
-        } else if (distanceHome > 10000 && distanceHome < 11000) {
-            obtainObj = SerialService.DISTANCE1_11;
-        } else if (distanceHome > 11000 && distanceHome < 12000) {
-            obtainObj = SerialService.DISTANCE1_12;
-        } else if (distanceHome > 12000 && distanceHome < 13000) {
+        } else if (distanceHome > 1300 && distanceHome < 1500) {
             obtainObj = SerialService.DISTANCE1_13;
-        } else if (distanceHome > 13000 && distanceHome < 14000) {
-            obtainObj = SerialService.DISTANCE1_14;
-        } else if (distanceHome > 14000 && distanceHome < 15000) {
+        } else if (distanceHome > 1500 && distanceHome < 1800) {
             obtainObj = SerialService.DISTANCE1_15;
-        } else if (distanceHome > 15000 && distanceHome < 16000) {
-            obtainObj = SerialService.DISTANCE1_16;
-        } else if (distanceHome > 16000 && distanceHome < 17000) {
-            obtainObj = SerialService.DISTANCE1_17;
-        } else if (distanceHome > 17000 && distanceHome < 18000) {
+        } else if (distanceHome > 1800 && distanceHome < 2000) {
             obtainObj = SerialService.DISTANCE1_18;
+        } else if (distanceHome > 2000 && distanceHome < 2300) {
+            obtainObj = SerialService.DISTANCE1_20;
+        } else if (distanceHome > 2300 && distanceHome < 2500) {
+            obtainObj = SerialService .DISTANCE1_23;
+        } else if (distanceHome > 2500 && distanceHome < 2800) {
+            obtainObj = SerialService.DISTANCE1_25;
+        } else if (distanceHome > 2800 && distanceHome < 3000) {
+            obtainObj = SerialService.DISTANCE1_28;
+        } else if (distanceHome > 3000 && distanceHome < 3300) {
+            obtainObj = SerialService.DISTANCE1_30;
+        } else if (distanceHome > 3300 && distanceHome < 3500) {
+            obtainObj = SerialService.DISTANCE1_35;
+        } else if (distanceHome > 3500 && distanceHome < 3800) {
+            obtainObj = SerialService.DISTANCE1_38;
+        } else if (distanceHome > 3800 && distanceHome < 4000) {
+            obtainObj = SerialService.DISTANCE1_40;
+        } else if (distanceHome > 4000 && distanceHome < 4300) {
+            obtainObj = SerialService.DISTANCE1_43;
         } else {
-            obtainObj = -20;
+            obtainObj = -1;
         }
         return obtainObj;
     }
 
     private int outputCurrentGroundSpeedObtainObj(){
-        if (groundSpeed < 1) {
+        if (groundSpeed < 10) {
             obtainObj = SerialService.GROUND_SPEED_1;
-        } else if (groundSpeed > 5 && groundSpeed < 7) {
+        } else if (groundSpeed >10 && groundSpeed < 15){
             obtainObj = SerialService.GROUND_SPEED_2;
-        } else if (groundSpeed > 6 && groundSpeed < 10) {
+        } else if (groundSpeed > 14 && groundSpeed < 17) {
+            obtainObj = SerialService.GROUND_SPEED_2;
+        } else if (groundSpeed > 16 && groundSpeed < 20) {
             obtainObj = SerialService.GROUND_SPEED_3;
-        } else if (groundSpeed > 9 && groundSpeed < 12) {
+        } else if (groundSpeed > 19 && groundSpeed < 23) {
             obtainObj = SerialService.GROUND_SPEED_4;
-        }else if (groundSpeed > 11 && groundSpeed < 15){
+        }else if (groundSpeed > 22 && groundSpeed < 25){
             obtainObj = SerialService.GROUND_SPEED_5;
-        }else if (groundSpeed > 15){
+        }else if (groundSpeed > 25){
             obtainObj = SerialService.GROUND_SPEED_6;
-    } else {
+        } else {
             obtainObj = SerialService.OTHER_1;
         }
         return obtainObj;
@@ -621,14 +594,15 @@ public class MainActivity extends AppCompatActivity {
 
             // 高度の色表示
             height = Integer.parseInt(data[4]);
-            if(height < 2000 || height > 5000) {
+            //if(height < 2000 || height > 5000) {
+            if(height < 300 || height > 5000) {
                 fragmentLayout.setBackgroundColor(getResources().getColor(R.color.red, getTheme()));
             } else {
                 fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
             }
             Log.i("debugHeight", "height" + String.valueOf(height));
 
-            groundSpeed = (Integer.parseInt(data[7]) / 1000);
+            groundSpeed = (Integer.parseInt(data[7]));
 
         }
     };
@@ -667,10 +641,9 @@ public class MainActivity extends AppCompatActivity {
         /*
          * 計測値から最小二乗法を用いて角度を検出
          */
-        int deg = 0;
         if(pulseDeg < 35){
             deg = -15;
-        } else if (pulseDeg > 34 && pulseDeg < 65) {
+        } else if (pulseDeg > 35 && pulseDeg < 65) {
             deg = -14;
         } else if (pulseDeg > 64 && pulseDeg < 95) {
             deg = -13;
