@@ -7,23 +7,12 @@
     android:background="@color/transparent">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/controlDeg"
-        android:text="UP DOWN"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginTop="100dp"/>
-
-    <TextView
         android:id="@+id/cadenceMonitor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/controlDeg"
         android:text="Cadence"
-        android:textSize="54sp"
+        android:textSize="25sp"
         android:textStyle="bold" />
 
     <SeekBar
