@@ -136,6 +136,8 @@ public class MainActivity extends AppCompatActivity {
         // 初期化
         findViews();
 
+        startVoiceService(R.raw.system_1);
+
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
         }
@@ -403,5 +405,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void startVoiceService(int data){
+        Intent intent = new Intent(this, VoiceService.class);
+        intent.putExtra(VOICE_KEY, data);
+        startService(intent);
+    }
 
 }
