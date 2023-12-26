@@ -86,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
     TextView cadenceMonitor;
     SeekBar seekBar;
 
-    public int offsetValue = 500;
-
     private SpeechRecognizer speechRecognizer;
     private final static String TAG = "SPEECH_RECOGNIZER";
 
@@ -118,9 +116,7 @@ public class MainActivity extends AppCompatActivity {
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
         connectButton = (Button) findViewById(R.id.connectButton);
-        fragmentLayout = (RelativeLayout) findViewById(R.id.sensorFragment);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
         cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
     }
 
@@ -136,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         // 初期化
         findViews();
 
-        startVoiceService(R.raw.system_1);
+        //startVoiceService(R.raw.system_1);
 
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
@@ -148,9 +144,6 @@ public class MainActivity extends AppCompatActivity {
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2);
-
-        seekBar.setProgress(offsetValue);
-        seekBar.setVisibility(View.GONE);
 
 
         mapController = map.getController();
@@ -193,23 +186,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             handler.post(r);
-        });
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                offsetValue = i;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // くすぐったいよー
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                seekBar.setVisibility(View.GONE) ;
-            }
         });
 
 
@@ -401,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent){
-        seekBar.setVisibility(View.VISIBLE);
+        cadenceMonitor.setText("onTouchEvent");
         return true;
     }
 
