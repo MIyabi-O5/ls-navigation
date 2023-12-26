@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static int obtainObj;
 
+    public static boolean isButtonVisible = true;
+
     // ----世界観測値系----
     public static final double GRS80_A = 6378137.000;//長半径 a(m)
     public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
@@ -117,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         map = (MapView) findViewById(R.id.map);
         connectButton = (Button) findViewById(R.id.connectButton);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
-        cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
+        cadenceMonitor = (TextView) findViewById(R.id.cadenceView);
     }
 
     @Override
@@ -377,11 +379,41 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent){
-        cadenceMonitor.setText("onTouchEvent");
+        /*
+         * 画面をタッチしたときにButton類を表示/非表示する
+         * その後isButtonVisibleを更新する
+         * @param motionEvent タッチイベント
+         * @return boolean
+         */
+        Log.d(MAIN_ACTIVITY_DEBUG_TAG, "onTouchEvent");
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            if(isButtonVisible){
+                buttonsVisible(View.GONE);
+                isButtonVisible = false;
+            }else{
+                buttonsVisible(View.VISIBLE);
+                isButtonVisible = true;
+            }
+        }
         return true;
     }
 
+    private void buttonsVisible(int viewVisible){
+        /*
+         * Button類を表示/非表示する
+         * @param int viewVisible View.VISIBLE or View.GONE
+         * @return void
+         */
+        connectButton.setVisibility(viewVisible);
+    }
+
     private void startVoiceService(int data){
+        /*
+         * 音声ファイルを再生するサービスを開始する,
+         * このサービスは再生が終了すると自動的に終了する
+         * @param data 再生する音声ファイルのID, ex)R.raw.system_1
+         * @return void
+         */
         Intent intent = new Intent(this, VoiceService.class);
         intent.putExtra(VOICE_KEY, data);
         startService(intent);
