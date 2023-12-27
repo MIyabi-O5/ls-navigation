@@ -56,33 +56,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String MAIN_ACTIVITY_DEBUG_TAG = "MainActivity";
     private static final String SPEECH_DEBUG_TAG = "SPEECH_RECOGNIZER";
     private static final String SERIAL_DEBUG_TAG = "SERIAL";
-    private static final String GNSS_DEBUG_TAG = "GNSS";
     private static final String CADENCE_DEBUG_TAG = "CADENCE";
     // -----------------
 
-    // debug用座標UEC
-    public static final double homePointLat = 35.2949664;
-    public static final double homePointLon = 136.2555092;
-    // -----------
-    GeoPoint centerPoint;   // 現在値
-    GeoPoint homePoint = new GeoPoint(homePointLat, homePointLon);     // プラットホーム座標;
-
-    public static int distanceHome = 10;
-    public static int distancePylon = 10;
-    public static int groundSpeed = 0;
     public static int cadence = 0;
     public static int power = 0;
     public static int height = 0;
     public static int deg = 0;
 
     public static int obtainObj;
-
     public static boolean isButtonVisible = true;
-
-    // ----世界観測値系----
-    public static final double GRS80_A = 6378137.000;//長半径 a(m)
-    public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
-    // -----------------
     Button connectButton;
     Button rebootButton;
     Button homePosButton;
@@ -164,15 +147,15 @@ public class MainActivity extends AppCompatActivity {
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        centerPoint = new GeoPoint(35.2935037, 136.2556463);
+        GNSSUtils.centerPoint = new GeoPoint(35.6587588, 139.5434757);
 
-        mapController.setCenter(centerPoint);
+        mapController.setCenter(GNSSUtils.homePoint);
         map.setMultiTouchControls(true);
         mapController.setZoom(15.0);
 
         // パイロン座標の表示
         Marker marker = new Marker(map);
-        marker.setPosition(homePoint);
+        marker.setPosition(GNSSUtils.homePoint);
         map.getOverlays().add(marker);
         Drawable icon = getDrawable(R.drawable.white);
         marker.setIcon(icon);
@@ -320,77 +303,10 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             String msg = intent.getStringExtra("message");
-            /*
-             msgの構造
-             data,lat,lon,heading,height,ctl\n
-             これらのデータを配列に変換する
-             */
-            String[] data = msg.split(",");
-
-            double latitude = Double.parseDouble(data[1]) / 10000000;
-            double longitude = Double.parseDouble(data[2]) / 10000000;
-            int heading = (int)Double.parseDouble(data[3]) / 100000;
-            // ブラックの回転
-            imageBlack.setRotation(heading);
-
-            centerPoint = new GeoPoint(latitude, longitude);
-            mapController.setCenter(centerPoint);
-            // pylonPointまでの距離(m)
-            //distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
-            // homePointまでの距離(m)
-            //distanceHome = 18000 - distancePylon;
-            distanceHome = (int)calcDistance(homePointLat, homePointLon, latitude, longitude);
-
-            Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
-            Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
-
-            cadence = Integer.parseInt(data[6]);
-            power = Integer.parseInt(data[8]);
-            String str = String.valueOf(cadence) + "RPM\n" + String.valueOf(power) + "W";
-            cadenceMonitor.setText(str);
-            Log.i("debugCadence", "cadence" + String.valueOf(cadence));
-
-            /*
-            height = Integer.parseInt(data[4]);
-            //if(height < 2000 || height > 5000) {
-            if(height < 300 || height > 5000) {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.unstableRed, getTheme()));
-            } else {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.stableBlue, getTheme()));
-            }
-            Log.i("debugHeight", "height" + String.valueOf(height));
-             */
-
-            groundSpeed = (Integer.parseInt(data[7]));
-
+            Log.d(SERIAL_DEBUG_TAG, msg);
         }
     };
-
-    private static double deg2rad(double deg){
-        return deg * Math.PI / 180.0;
-    }
-
-    private static double calcDistance(double lat1, double lng1, double lat2, double lng2){
-        double my = deg2rad((lat1 + lat2) / 2.0); //緯度の平均値
-        double dy = deg2rad(lat1 - lat2); //緯度の差
-        double dx = deg2rad(lng1 - lng2); //経度の差
-
-        //卯酉線曲率半径を求める(東と西を結ぶ線の半径)
-        double sinMy = Math.sin(my);
-        double w = Math.sqrt(1.0 - GRS80_E2 * sinMy * sinMy);
-        double n = GRS80_A / w;
-
-        //子午線曲線半径を求める(北と南を結ぶ線の半径)
-        double mnum = GRS80_A * (1 - GRS80_E2);
-        double m = mnum / (w * w * w);
-
-        //ヒュベニの公式
-        double dym = dy * m;
-        double dxncos = dx * n * Math.cos(my);
-        return Math.sqrt(dym * dym + dxncos * dxncos);
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent){
