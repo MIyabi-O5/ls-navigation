@@ -2,6 +2,7 @@ package com.example.lsnavigation;
 
 import static java.lang.Math.abs;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -130,6 +131,12 @@ public class MainActivity extends AppCompatActivity {
         Configuration.getInstance()
                 .load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
         setContentView(R.layout.activity_main);
+
+        // actionbarの非表示
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
 
         // 初期化
         findViews();
