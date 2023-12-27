@@ -84,10 +84,11 @@ public class MainActivity extends AppCompatActivity {
     public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
     // -----------------
     Button connectButton;
-    RelativeLayout fragmentLayout;
+    Button rebootButton;
+    Button homePosButton;
     ImageView imageBlack;
+    TextView altitudeView;
     TextView cadenceMonitor;
-    SeekBar seekBar;
 
     private SpeechRecognizer speechRecognizer;
     private final static String TAG = "SPEECH_RECOGNIZER";
@@ -118,8 +119,14 @@ public class MainActivity extends AppCompatActivity {
 
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
+        //　コントロールボタン
         connectButton = (Button) findViewById(R.id.connectButton);
+        rebootButton = (Button) findViewById(R.id.rebootButton);
+        homePosButton = (Button) findViewById(R.id.homePosButton);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
+        // state表示
+        altitudeView = (TextView) findViewById(R.id.altitudeView);
+        // 計器類の表示
         cadenceMonitor = (TextView) findViewById(R.id.cadenceView);
     }
 
@@ -345,15 +352,16 @@ public class MainActivity extends AppCompatActivity {
             cadenceMonitor.setText(str);
             Log.i("debugCadence", "cadence" + String.valueOf(cadence));
 
-            // 高度の色表示
+            /*
             height = Integer.parseInt(data[4]);
             //if(height < 2000 || height > 5000) {
             if(height < 300 || height > 5000) {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.red, getTheme()));
+                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.unstableRed, getTheme()));
             } else {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
+                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.stableBlue, getTheme()));
             }
             Log.i("debugHeight", "height" + String.valueOf(height));
+             */
 
             groundSpeed = (Integer.parseInt(data[7]));
 
@@ -412,6 +420,8 @@ public class MainActivity extends AppCompatActivity {
          * @return void
          */
         connectButton.setVisibility(viewVisible);
+        rebootButton.setVisibility(viewVisible);
+        homePosButton.setVisibility(viewVisible);
     }
 
     private void startVoiceService(int data){
