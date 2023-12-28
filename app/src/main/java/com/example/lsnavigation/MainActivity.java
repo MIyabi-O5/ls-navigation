@@ -46,7 +46,7 @@ import org.osmdroid.views.overlay.Marker;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     MapView map;
     IMapController mapController;
     Random rand = new Random();
@@ -167,26 +167,6 @@ public class MainActivity extends AppCompatActivity {
         // Receiverの登録、manifestにも追記する必要があるReceiverも存在する
         registerReceiver(receiver, intentFilter);
 
-        Intent intent = new Intent(this, SerialService.class);
-        connectButton.setOnClickListener(view -> {
-            startService(intent);
-            bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
-            speechRecognizer.startListening(speechRecognizerIntent);
-            // buttonを押したら邪魔なので見えなくする
-            connectButton.setVisibility(View.GONE);
-
-            // 定期実行関数、10秒おきに高度と距離を確認して必要ならばボイスを再生
-            handler = new Handler(getMainLooper());
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(MAIN_ACTIVITY_DEBUG_TAG, "Runnable");
-                    handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
-                }
-            };
-            handler.post(r);
-        });
-
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
@@ -283,6 +263,42 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onEvent");
             }
         });
+
+        connectButton.setOnClickListener(this);
+        rebootButton.setOnClickListener(this);
+        homePosButton.setOnClickListener(this);
+
+    }
+
+    // button類を押したときの動作
+    @Override
+    public void onClick(View view){
+        int tmp = view.getId();
+        if (tmp == R.id.connectButton){
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "connectButton");
+            Intent intent = new Intent(this, SerialService.class);
+            startService(intent);
+            bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
+            // 音声認識
+            //speechRecognizer.startListening(speechRecognizerIntent);
+            // buttonを押したら邪魔なので見えなくする
+            connectButton.setVisibility(View.GONE);
+
+            // 定期実行関数、10秒おきに高度と距離を確認して必要ならばボイスを再生
+            handler = new Handler(getMainLooper());
+            r = new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(MAIN_ACTIVITY_DEBUG_TAG, "Runnable");
+                    handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
+                }
+            };
+            handler.post(r);
+        } else if (tmp == R.id.rebootButton) {
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "reboot");
+        }else if (tmp == R.id.homePosButton){
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "homePosButton");
+        }
     }
 
     public void onResume(){
