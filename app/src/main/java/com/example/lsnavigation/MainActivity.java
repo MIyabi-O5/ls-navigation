@@ -2,6 +2,7 @@ package com.example.lsnavigation;
 
 import static java.lang.Math.abs;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -45,7 +46,7 @@ import org.osmdroid.views.overlay.Marker;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     MapView map;
     IMapController mapController;
     Random rand = new Random();
@@ -55,38 +56,22 @@ public class MainActivity extends AppCompatActivity {
     private static final String MAIN_ACTIVITY_DEBUG_TAG = "MainActivity";
     private static final String SPEECH_DEBUG_TAG = "SPEECH_RECOGNIZER";
     private static final String SERIAL_DEBUG_TAG = "SERIAL";
-    private static final String GNSS_DEBUG_TAG = "GNSS";
     private static final String CADENCE_DEBUG_TAG = "CADENCE";
     // -----------------
 
-    // debug用座標UEC
-    public static final double homePointLat = 35.2949664;
-    public static final double homePointLon = 136.2555092;
-    // -----------
-    GeoPoint centerPoint;   // 現在値
-    GeoPoint homePoint = new GeoPoint(homePointLat, homePointLon);     // プラットホーム座標;
-
-    public static int distanceHome = 10;
-    public static int distancePylon = 10;
-    public static int groundSpeed = 0;
     public static int cadence = 0;
     public static int power = 0;
     public static int height = 0;
     public static int deg = 0;
 
     public static int obtainObj;
-
-    // ----世界観測値系----
-    public static final double GRS80_A = 6378137.000;//長半径 a(m)
-    public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
-    // -----------------
+    public static boolean isButtonVisible = true;
     Button connectButton;
-    RelativeLayout fragmentLayout;
+    Button rebootButton;
+    Button homePosButton;
     ImageView imageBlack;
+    TextView altitudeView;
     TextView cadenceMonitor;
-    SeekBar seekBar;
-
-    public int offsetValue = 500;
 
     private SpeechRecognizer speechRecognizer;
     private final static String TAG = "SPEECH_RECOGNIZER";
@@ -117,11 +102,15 @@ public class MainActivity extends AppCompatActivity {
 
     protected void findViews(){
         map = (MapView) findViewById(R.id.map);
+        //　コントロールボタン
         connectButton = (Button) findViewById(R.id.connectButton);
-        fragmentLayout = (RelativeLayout) findViewById(R.id.sensorFragment);
+        rebootButton = (Button) findViewById(R.id.rebootButton);
+        homePosButton = (Button) findViewById(R.id.homePosButton);
         imageBlack = (ImageView) findViewById(R.id.imageBlack);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
-        cadenceMonitor = (TextView) findViewById(R.id.cadenceMonitor);
+        // state表示
+        altitudeView = (TextView) findViewById(R.id.altitudeView);
+        // 計器類の表示
+        cadenceMonitor = (TextView) findViewById(R.id.cadenceView);
     }
 
     @Override
@@ -133,8 +122,16 @@ public class MainActivity extends AppCompatActivity {
                 .load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
         setContentView(R.layout.activity_main);
 
+        // actionbarの非表示
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
         // 初期化
         findViews();
+
+        //startVoiceService(R.raw.system_1);
 
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
@@ -147,21 +144,18 @@ public class MainActivity extends AppCompatActivity {
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2);
 
-        seekBar.setProgress(offsetValue);
-        seekBar.setVisibility(View.GONE);
-
 
         mapController = map.getController();
         map.setTileSource(TileSourceFactory.MAPNIK);
-        centerPoint = new GeoPoint(35.2935037, 136.2556463);
+        GNSSUtils.centerPoint = new GeoPoint(35.6587588, 139.5434757);
 
-        mapController.setCenter(centerPoint);
+        mapController.setCenter(GNSSUtils.homePoint);
         map.setMultiTouchControls(true);
         mapController.setZoom(15.0);
 
         // パイロン座標の表示
         Marker marker = new Marker(map);
-        marker.setPosition(homePoint);
+        marker.setPosition(GNSSUtils.homePoint);
         map.getOverlays().add(marker);
         Drawable icon = getDrawable(R.drawable.white);
         marker.setIcon(icon);
@@ -172,43 +166,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Receiverの登録、manifestにも追記する必要があるReceiverも存在する
         registerReceiver(receiver, intentFilter);
-
-        Intent intent = new Intent(this, SerialService.class);
-        connectButton.setOnClickListener(view -> {
-            startService(intent);
-            bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
-            speechRecognizer.startListening(speechRecognizerIntent);
-            // buttonを押したら邪魔なので見えなくする
-            connectButton.setVisibility(View.GONE);
-
-            // 定期実行関数、10秒おきに高度と距離を確認して必要ならばボイスを再生
-            handler = new Handler(getMainLooper());
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(MAIN_ACTIVITY_DEBUG_TAG, "Runnable");
-                    handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
-                }
-            };
-            handler.post(r);
-        });
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                offsetValue = i;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // くすぐったいよー
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                seekBar.setVisibility(View.GONE) ;
-            }
-        });
 
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -306,6 +263,42 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onEvent");
             }
         });
+
+        connectButton.setOnClickListener(this);
+        rebootButton.setOnClickListener(this);
+        homePosButton.setOnClickListener(this);
+
+    }
+
+    // button類を押したときの動作
+    @Override
+    public void onClick(View view){
+        int tmp = view.getId();
+        if (tmp == R.id.connectButton){
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "connectButton");
+            Intent intent = new Intent(this, SerialService.class);
+            startService(intent);
+            bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
+            // 音声認識
+            //speechRecognizer.startListening(speechRecognizerIntent);
+            // buttonを押したら邪魔なので見えなくする
+            connectButton.setVisibility(View.GONE);
+
+            // 定期実行関数、10秒おきに高度と距離を確認して必要ならばボイスを再生
+            handler = new Handler(getMainLooper());
+            r = new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(MAIN_ACTIVITY_DEBUG_TAG, "Runnable");
+                    handler.postDelayed(this, 10000);   // 10秒間隔で現在の状況を判断する
+                }
+            };
+            handler.post(r);
+        } else if (tmp == R.id.rebootButton) {
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "reboot");
+        }else if (tmp == R.id.homePosButton){
+            Log.d(MAIN_ACTIVITY_DEBUG_TAG, "homePosButton");
+        }
     }
 
     public void onResume(){
@@ -326,82 +319,53 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             String msg = intent.getStringExtra("message");
-            /*
-             msgの構造
-             data,lat,lon,heading,height,ctl\n
-             これらのデータを配列に変換する
-             */
-            String[] data = msg.split(",");
-
-            double latitude = Double.parseDouble(data[1]) / 10000000;
-            double longitude = Double.parseDouble(data[2]) / 10000000;
-            int heading = (int)Double.parseDouble(data[3]) / 100000;
-            // ブラックの回転
-            imageBlack.setRotation(heading);
-
-            centerPoint = new GeoPoint(latitude, longitude);
-            mapController.setCenter(centerPoint);
-            // pylonPointまでの距離(m)
-            //distancePylon = (int)calcDistance(pylonPointLat, pylonPointLon, latitude, longitude);
-            // homePointまでの距離(m)
-            //distanceHome = 18000 - distancePylon;
-            distanceHome = (int)calcDistance(homePointLat, homePointLon, latitude, longitude);
-
-            Log.i("debugGPS", "distanceHome" + String.valueOf(distanceHome));
-            Log.i("debugGPS", "distancePylon" + String.valueOf(distancePylon));
-
-            cadence = Integer.parseInt(data[6]);
-            power = Integer.parseInt(data[8]);
-            String str = String.valueOf(cadence) + "RPM\n" + String.valueOf(power) + "W";
-            cadenceMonitor.setText(str);
-            Log.i("debugCadence", "cadence" + String.valueOf(cadence));
-
-            // 高度の色表示
-            height = Integer.parseInt(data[4]);
-            //if(height < 2000 || height > 5000) {
-            if(height < 300 || height > 5000) {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.red, getTheme()));
-            } else {
-                fragmentLayout.setBackgroundColor(getResources().getColor(R.color.blue, getTheme()));
-            }
-            Log.i("debugHeight", "height" + String.valueOf(height));
-
-            groundSpeed = (Integer.parseInt(data[7]));
-
+            Log.d(SERIAL_DEBUG_TAG, msg);
         }
     };
 
-    private static double deg2rad(double deg){
-        return deg * Math.PI / 180.0;
-    }
-
-    private static double calcDistance(double lat1, double lng1, double lat2, double lng2){
-        double my = deg2rad((lat1 + lat2) / 2.0); //緯度の平均値
-        double dy = deg2rad(lat1 - lat2); //緯度の差
-        double dx = deg2rad(lng1 - lng2); //経度の差
-
-        //卯酉線曲率半径を求める(東と西を結ぶ線の半径)
-        double sinMy = Math.sin(my);
-        double w = Math.sqrt(1.0 - GRS80_E2 * sinMy * sinMy);
-        double n = GRS80_A / w;
-
-        //子午線曲線半径を求める(北と南を結ぶ線の半径)
-        double mnum = GRS80_A * (1 - GRS80_E2);
-        double m = mnum / (w * w * w);
-
-        //ヒュベニの公式
-        double dym = dy * m;
-        double dxncos = dx * n * Math.cos(my);
-        return Math.sqrt(dym * dym + dxncos * dxncos);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent){
-        seekBar.setVisibility(View.VISIBLE);
+        /*
+         * 画面をタッチしたときにButton類を表示/非表示する
+         * その後isButtonVisibleを更新する
+         * @param motionEvent タッチイベント
+         * @return boolean
+         */
+        Log.d(MAIN_ACTIVITY_DEBUG_TAG, "onTouchEvent");
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            if(isButtonVisible){
+                buttonsVisible(View.GONE);
+                isButtonVisible = false;
+            }else{
+                buttonsVisible(View.VISIBLE);
+                isButtonVisible = true;
+            }
+        }
         return true;
     }
 
+    private void buttonsVisible(int viewVisible){
+        /*
+         * Button類を表示/非表示する
+         * @param int viewVisible View.VISIBLE or View.GONE
+         * @return void
+         */
+        connectButton.setVisibility(viewVisible);
+        rebootButton.setVisibility(viewVisible);
+        homePosButton.setVisibility(viewVisible);
+    }
+
+    private void startVoiceService(int data){
+        /*
+         * 音声ファイルを再生するサービスを開始する,
+         * このサービスは再生が終了すると自動的に終了する
+         * @param data 再生する音声ファイルのID, ex)R.raw.system_1
+         * @return void
+         */
+        Intent intent = new Intent(this, VoiceService.class);
+        intent.putExtra(VOICE_KEY, data);
+        startService(intent);
+    }
 
 }

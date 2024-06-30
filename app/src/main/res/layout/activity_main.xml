@@ -1,35 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-    <org.osmdroid.views.MapView android:id="@+id/map"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/connectButton"
-        android:text="connect"
-        android:layout_gravity="bottom"/>
-
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_height="800px"
-        android:id="@+id/sensorFragment"
-        android:name="com.example.lsnavigation.SensorFragment"
-        android:layout_gravity="bottom"/>
-
-    <ImageView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/imageBlack"
-        android:src="@drawable/baseline_airplanemode_active_24"
-        android:scaleType="center"
-        android:scaleX="0.5"
-        android:scaleY="0.5"/>`
+        android:layout_weight="1">
+
+        <org.osmdroid.views.MapView android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/imageBlack"
+            android:src="@drawable/baseline_airplanemode_active_24"
+            android:scaleType="center"
+            android:scaleX="0.5"
+            android:scaleY="0.5"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:id="@+id/altitudeView"
+            android:text="500cm"
+            android:textSize="100dp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_gravity="bottom"
+            android:background="@color/stableBlue"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/connectButton"
+                android:text="connect"
+                android:layout_weight="1"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/rebootButton"
+                android:text="reboot"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/homePosButton"
+                android:text="home-Pos"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/powerMeterLayout"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:id="@+id/cadenceView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="90RPM"
+                android:textSize="40dp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@color/stableBlue"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/powerView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="200W"
+                android:textSize="40dp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@color/stableBlue"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/rudderSeekBar"
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/powerMeterLayout"
+            android:layout_margin="10dp"
+            android:max="30"
+            android:progress="15"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/ADILayout"
+            android:layout_above="@+id/rudderSeekBar">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/imageWhite"
+                    android:src="@drawable/white"
+                    android:layout_weight="1"/>
 
 
-</FrameLayout>
+            </FrameLayout>
+
+
+            <SeekBar
+                android:id="@+id/elevatorSeekBar"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:max="30"
+                android:progress="15"
+                android:rotation="270"
+                android:layout_weight="6"/>
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+</LinearLayout>
