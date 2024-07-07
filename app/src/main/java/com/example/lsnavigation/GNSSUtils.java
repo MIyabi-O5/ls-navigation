@@ -13,8 +13,8 @@ public final class GNSSUtils {
     public static final double GRS80_E2 = 0.00669438002301188;//第一遠心率  eの2乗
     // -----------------
     // debug用座標UEC
-    public static final double homePointLat = 35.6587588;
-    public static final double homePointLon = 139.5434757;
+    private static double homePointLat = 35.6587588;
+    private static double homePointLon = 139.5434757;
     public static final double pylonPointLat = 36.6587588;
     public static final double pylonPointLon = 138.5434757;
     // -----------
@@ -27,6 +27,11 @@ public final class GNSSUtils {
     public static int distancePylon = 10;
     public static int groundSpeed = 0;
     public static int heading = 0;
+    public static void setHomePoint(double lat, double lon){
+        homePointLat = lat;
+        homePointLon = lon;
+        homePoint = new GeoPoint(homePointLat, homePointLon);
+    }
     private static double deg2rad(double deg){
         return deg * Math.PI / 180.0;
     }

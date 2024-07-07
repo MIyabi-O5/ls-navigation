@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // button類を押したときの動作
     @Override
     public void onClick(View view){
-        int tmp = view.getId();
+        int tmp = view.getId(); // tmpに押されたボタンのIDを格納
         if (tmp == R.id.connectButton){
             Log.d(MAIN_ACTIVITY_DEBUG_TAG, "connectButton");
             Intent intent = new Intent(this, SerialService.class);
@@ -302,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d(MAIN_ACTIVITY_DEBUG_TAG, "reboot");
         }else if (tmp == R.id.homePosButton){
             Log.d(MAIN_ACTIVITY_DEBUG_TAG, "homePosButton");
+            GNSSUtils.setHomePoint(GNSSUtils.centerPoint.getLatitude(), GNSSUtils.centerPoint.getLongitude());
         }
     }
 
@@ -326,14 +327,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String msg = intent.getStringExtra("message");
             Log.d(SERIAL_DEBUG_TAG, msg);
             String[] data = msg.split(",");
-            double latitude = Double.parseDouble(data[1])/10000000.0;
-            double longitude  = Double.parseDouble(data[2])/10000000.0;
-            int height = Integer.parseInt(data[3]);
-            GNSSUtils.centerPoint = new GeoPoint(latitude, longitude);
+            double latitude = Double.parseDouble(data[1])/10000000.0; //緯度
+            double longitude  = Double.parseDouble(data[2])/10000000.0; //経度
+            int height = Integer.parseInt(data[3]); //高度
+            GNSSUtils.centerPoint = new GeoPoint(latitude, longitude); //中心座標をデータに合わせる
             mapController.setCenter(GNSSUtils.centerPoint);
             altitudeView.setText(String.valueOf(height));
-            GNSSUtils.heading = (int)Double.parseDouble(data[4])/100000;
-            GNSSUtils.groundSpeed = (int)Double.parseDouble(data[5])/1000;
+            GNSSUtils.heading = (int)Double.parseDouble(data[4])/100000; //方角
+            GNSSUtils.groundSpeed = (int)Double.parseDouble(data[5])/1000; //機速
             imageBlack.setRotation(GNSSUtils.heading);
         }
     };
