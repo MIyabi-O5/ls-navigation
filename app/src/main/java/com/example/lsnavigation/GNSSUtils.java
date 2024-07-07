@@ -26,6 +26,7 @@ public final class GNSSUtils {
     public static int distanceHome = 10;
     public static int distancePylon = 10;
     public static int groundSpeed = 0;
+    public static int heading = 0;
     private static double deg2rad(double deg){
         return deg * Math.PI / 180.0;
     }

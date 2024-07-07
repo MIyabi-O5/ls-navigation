@@ -46,6 +46,7 @@ import org.osmdroid.views.overlay.Marker;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.example.lsnavigation.VoiceRecogUtils;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     MapView map;
     IMapController mapController;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private SpeechRecognizer speechRecognizer;
     private final static String TAG = "SPEECH_RECOGNIZER";
-
+    private Intent speechRecognizerIntent;
     // Activityとserviceの通信
     Messenger messenger = null;
     boolean bound;
@@ -130,8 +131,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // 初期化
         findViews();
-
-        //startVoiceService(R.raw.system_1);
+        //起動時音声
+        startVoiceService(R.raw.system_1);
 
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
-        Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2);
@@ -242,13 +243,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 String str = data.get(0);
 
-                msg = Message.obtain(null, obtainObj, 0, 0);
+                int voiceId = VoiceRecogUtils.getVoiceIdForStr(str);
+                startVoiceService(voiceId);
 
-                try {
-                    messenger.send(msg);
+                //msg = Message.obtain(null, obtainObj, 0, 0);//マイコンに送る用
+
+                /*try {
+                 messenger.send(msg);
                 }catch (RemoteException e){
                     e.printStackTrace();
-                }
+                }*/
 
                 speechRecognizer.startListening(speechRecognizerIntent);
             }
@@ -280,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startService(intent);
             bindService(new Intent(this, SerialService.class), connection, Context.BIND_AUTO_CREATE);
             // 音声認識
-            //speechRecognizer.startListening(speechRecognizerIntent);
+            speechRecognizer.startListening(speechRecognizerIntent);
             // buttonを押したら邪魔なので見えなくする
             connectButton.setVisibility(View.GONE);
 
@@ -321,6 +325,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onReceive(Context context, Intent intent) {
             String msg = intent.getStringExtra("message");
             Log.d(SERIAL_DEBUG_TAG, msg);
+            String[] data = msg.split(",");
+            double latitude = Double.parseDouble(data[1])/10000000.0;
+            double longitude  = Double.parseDouble(data[2])/10000000.0;
+            int height = Integer.parseInt(data[3]);
+            GNSSUtils.centerPoint = new GeoPoint(latitude, longitude);
+            mapController.setCenter(GNSSUtils.centerPoint);
+            altitudeView.setText(String.valueOf(height));
+            GNSSUtils.heading = (int)Double.parseDouble(data[4])/100000;
+            GNSSUtils.groundSpeed = (int)Double.parseDouble(data[5])/1000;
+            imageBlack.setRotation(GNSSUtils.heading);
         }
     };
 
